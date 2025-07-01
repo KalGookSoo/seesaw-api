@@ -64,6 +64,11 @@ public class SecurityConfig {
 
     private void handleAuthorizeHttpRequests(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry config) {
         config.requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasRole("ADMIN")
+                .requestMatchers(
+                        new AntPathRequestMatcher("/swagger-ui/**"),
+                        new AntPathRequestMatcher("/swagger-ui.html"),
+                        new AntPathRequestMatcher("/v3/api-docs/**")
+                ).permitAll()
                 .anyRequest()
                 .permitAll();
     }
