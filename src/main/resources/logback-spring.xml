@@ -2,6 +2,7 @@
 
     <!-- 공통 속성(property) 정의 -->
     <property name="LOG_PATH" value="./logs" /> <!-- 로그 파일 경로 -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="application"/>
     <property name="LOG_FILE" value="application.log" /> <!-- 로그 파일 이름 -->
     <property name="MAX_HISTORY" value="14" /> <!-- 보관할 최대 로그 파일 개수 -->
     <property name="TOTAL_SIZE_CAP" value="1GB" /> <!-- 보관 가능한 전체 로그 파일 크기 -->
