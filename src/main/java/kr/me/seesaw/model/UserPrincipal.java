@@ -1,0 +1,88 @@
+package kr.me.seesaw.model;
+
+import kr.me.seesaw.domain.Role;
+import kr.me.seesaw.domain.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
+
+public class UserPrincipal implements UserDetails {
+
+    private final User user;
+
+    public UserPrincipal(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return user.getRoles()
+                .stream()
+                .map(Role::getName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return user.getUsername();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return user.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return user.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return user.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        boolean accountNonLocked = isAccountNonLocked();
+        boolean accountNonExpired = isAccountNonExpired();
+        boolean credentialsNonExpired = isCredentialsNonExpired();
+        return accountNonLocked && accountNonExpired && credentialsNonExpired;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof User that) {
+            return getUsername().equals(that.getUsername());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.getUsername().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getName() + " [" +
+                "Username=" + getUsername() + ", " +
+                "Password=[PROTECTED], " +
+                "Enabled=" + isEnabled() + ", " +
+                "AccountNonExpired=" + isAccountNonExpired() + ", " +
+                "CredentialsNonExpired=" + isCredentialsNonExpired() + ", " +
+                "AccountNonLocked=" + isAccountNonLocked() + ", " +
+                "Granted Authorities=" + getAuthorities() + "]";
+    }
+
+}

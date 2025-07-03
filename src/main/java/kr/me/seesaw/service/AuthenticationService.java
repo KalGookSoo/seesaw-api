@@ -1,7 +1,7 @@
-package kr.me.seesaw.security.service;
+package kr.me.seesaw.service;
 
-import kr.me.seesaw.security.dto.SignInRequest;
-import kr.me.seesaw.security.dto.SignInResponse;
+import kr.me.seesaw.command.SignInCommand;
+import kr.me.seesaw.model.JsonWebToken;
 
 public interface AuthenticationService {
 
@@ -10,5 +10,5 @@ public interface AuthenticationService {
      * @param request 로그인 요청 정보
      * @return JWT 토큰이 포함된 응답
      */
-    SignInResponse authenticate(SignInRequest request);
+    JsonWebToken authenticate(SignInCommand request);
 }

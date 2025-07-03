@@ -11,11 +11,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
-import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -34,11 +34,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return new JwtAuthenticationSuccessHandler(jwtTokenProvider());
-    }
-
-    @Bean
     JwtTokenProvider jwtTokenProvider() {
         return new JwtTokenProvider(secretKey);
     }
@@ -53,7 +48,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http.cors(this::handleCorsPolicies);
         http.authorizeHttpRequests(this::handleAuthorizeHttpRequests);
-        http.formLogin(this::handleFormLogin);
+        http.sessionManagement(this::handleSeesionManagement);
         return http.build();
     }
 
@@ -81,10 +76,8 @@ public class SecurityConfig {
                 .permitAll();
     }
 
-    private void handleFormLogin(FormLoginConfigurer<HttpSecurity> httpSecurityFormLoginConfigurer) {
-        httpSecurityFormLoginConfigurer.loginProcessingUrl("/api/sign-in")
-                .successHandler(authenticationSuccessHandler())
-                .failureUrl("/api/sign-in?error");
+    private void handleSeesionManagement(SessionManagementConfigurer<HttpSecurity> httpSecuritySessionManagementConfigurer) {
+        httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
 }

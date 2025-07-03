@@ -1,10 +1,10 @@
-package kr.me.seesaw.security.dto;
+package kr.me.seesaw.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SignInResponse {
+public class JsonWebToken {
     private String token;
 }
