@@ -1,5 +1,6 @@
 package kr.me.seesaw.security;
 
+import kr.me.seesaw.core.authentication.PrincipalProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -34,8 +36,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtTokenProvider jwtTokenProvider() {
+    public JwtTokenProvider jwtTokenProvider() {
         return new JwtTokenProvider(secretKey);
+    }
+
+    @Bean
+    public PrincipalProvider principalProvider() {
+        return new HeaderPrincipalProvider(jwtTokenProvider());
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(principalProvider());
     }
 
     @Bean
@@ -49,6 +61,10 @@ public class SecurityConfig {
         http.cors(this::handleCorsPolicies);
         http.authorizeHttpRequests(this::handleAuthorizeHttpRequests);
         http.sessionManagement(this::handleSeesionManagement);
+
+        // JWT 인증 필터 추가
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
@@ -65,15 +81,22 @@ public class SecurityConfig {
     }
 
     private void handleAuthorizeHttpRequests(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry config) {
-        config.requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasRole("ADMIN")
+        config
+                // 관리자 전용 엔드포인트
+                .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasRole("ADMIN")
+                // 공개 엔드포인트 (인증 불필요)
                 .requestMatchers(
                         new AntPathRequestMatcher("/swagger-ui/**"),
                         new AntPathRequestMatcher("/swagger-ui.html"),
                         new AntPathRequestMatcher("/v3/api-docs/**"),
-                        new AntPathRequestMatcher("/api/sign-in")
+                        new AntPathRequestMatcher("/api/sign-in"),
+                        new AntPathRequestMatcher("/api/token/refresh"),
+                        new AntPathRequestMatcher("/api/public/**"),
+                        new AntPathRequestMatcher("/error")
                 ).permitAll()
+                // 그 외 모든 요청은 인증 필요
                 .anyRequest()
-                .permitAll();
+                .authenticated();
     }
 
     private void handleSeesionManagement(SessionManagementConfigurer<HttpSecurity> httpSecuritySessionManagementConfigurer) {

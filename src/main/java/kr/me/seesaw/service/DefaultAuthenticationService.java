@@ -35,9 +35,9 @@ public class DefaultAuthenticationService implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public JsonWebToken authenticate(SignInCommand request) {
+    public JsonWebToken authenticate(SignInCommand command) {
         // 사용자 조회
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByUsername(command.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
 
         // 사용자가 가진 역할 조회
@@ -52,7 +52,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
         UserPrincipal userPrincipal = new UserPrincipal(user);
 
         // 패스워드 검증
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다");
         }
 
@@ -69,9 +69,29 @@ public class DefaultAuthenticationService implements AuthenticationService {
             throw new CredentialsExpiredException("패스워드가 만료되었습니다");
         }
 
-        String token = jwtTokenProvider.generateToken(userPrincipal);
+        // 액세스 토큰과 리프레시 토큰 생성
+        JwtTokenProvider.TokenInfo tokenInfo = jwtTokenProvider.generateTokenInfo(userPrincipal);
 
-        return new JsonWebToken(token);
+        return new JsonWebToken(
+                tokenInfo.getAccessToken(),
+                tokenInfo.getRefreshToken(),
+                tokenInfo.getAccessTokenExpiresIn()
+        );
     }
 
+    @Override
+    public JsonWebToken refreshToken(String refreshToken) {
+        try {
+            // JwtTokenProvider를 사용하여 리프레시 토큰으로 새 토큰 발급
+            JwtTokenProvider.TokenInfo tokenInfo = jwtTokenProvider.refreshToken(refreshToken);
+
+            return new JsonWebToken(
+                    tokenInfo.getAccessToken(),
+                    tokenInfo.getRefreshToken(),
+                    tokenInfo.getAccessTokenExpiresIn()
+            );
+        } catch (Exception e) {
+            throw new BadCredentialsException("유효하지 않은 리프레시 토큰입니다: " + e.getMessage());
+        }
+    }
 }
