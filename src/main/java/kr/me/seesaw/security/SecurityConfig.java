@@ -20,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,8 +32,11 @@ public class SecurityConfig {
 
     private final String secretKey;
 
-    public SecurityConfig(@Value("${jwt.secret.key}") String secretKey) {
+    private final RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+    public SecurityConfig(@Value("${jwt.secret.key}") String secretKey, RequestMappingHandlerMapping requestMappingHandlerMapping) {
         this.secretKey = secretKey;
+        this.requestMappingHandlerMapping = requestMappingHandlerMapping;
     }
 
     @Bean
@@ -47,7 +51,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(principalProvider());
+        return new JwtAuthenticationFilter(principalProvider(), requestMappingHandlerMapping);
     }
 
     @Bean
@@ -82,9 +86,7 @@ public class SecurityConfig {
 
     private void handleAuthorizeHttpRequests(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry config) {
         config
-                // 관리자 전용 엔드포인트
                 .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasRole("ADMIN")
-                // 공개 엔드포인트 (인증 불필요)
                 .requestMatchers(
                         new AntPathRequestMatcher("/swagger-ui/**"),
                         new AntPathRequestMatcher("/swagger-ui.html"),
@@ -94,7 +96,6 @@ public class SecurityConfig {
                         new AntPathRequestMatcher("/api/public/**"),
                         new AntPathRequestMatcher("/error")
                 ).permitAll()
-                // 그 외 모든 요청은 인증 필요
                 .anyRequest()
                 .authenticated();
     }
