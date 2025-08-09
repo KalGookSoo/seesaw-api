@@ -85,19 +85,11 @@ public class SecurityConfig {
     }
 
     private void handleAuthorizeHttpRequests(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry config) {
-        config
+        config.requestMatchers(new AntPathRequestMatcher("/favicon.ico")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/actuator/health")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasRole("ADMIN")
-                .requestMatchers(
-                        new AntPathRequestMatcher("/swagger-ui/**"),
-                        new AntPathRequestMatcher("/swagger-ui.html"),
-                        new AntPathRequestMatcher("/v3/api-docs/**"),
-                        new AntPathRequestMatcher("/api/sign-in"),
-                        new AntPathRequestMatcher("/api/token/refresh"),
-                        new AntPathRequestMatcher("/api/public/**"),
-                        new AntPathRequestMatcher("/error")
-                ).permitAll()
                 .anyRequest()
-                .authenticated();
+                .permitAll();
     }
 
     private void handleSeesionManagement(SessionManagementConfigurer<HttpSecurity> httpSecuritySessionManagementConfigurer) {

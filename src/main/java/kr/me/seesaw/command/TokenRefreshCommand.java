@@ -15,6 +15,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TokenRefreshCommand {
     
-    @NotBlank(message = "리프레시 토큰은 필수입니다")
+    @NotBlank
     private String refreshToken;
 }
