@@ -16,9 +16,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -69,6 +69,7 @@ class SignApiControllerTest {
         mockMvc.perform(post("/api/sign-in")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
+                .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("access-token"))
                 .andExpect(jsonPath("$.refreshToken").value("refresh-token"))
@@ -90,6 +91,7 @@ class SignApiControllerTest {
         mockMvc.perform(post("/api/sign-in")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
+                .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isUnauthorized());
     }
 
@@ -98,12 +100,12 @@ class SignApiControllerTest {
     void signIn_MissingRequiredFields_Returns400() throws Exception {
         // given
         SignInCommand command = new SignInCommand();
-        // username과 password 필드를 비워둠
 
         // when & then
         mockMvc.perform(post("/api/sign-in")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
+                .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isUnprocessableEntity());
     }
 
@@ -120,6 +122,7 @@ class SignApiControllerTest {
         mockMvc.perform(post("/api/token/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
+                .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("new-access-token"))
                 .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"))
@@ -153,6 +156,7 @@ class SignApiControllerTest {
         mockMvc.perform(post("/api/token/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
+                .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isUnprocessableEntity());
     }
 }
