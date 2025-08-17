@@ -25,10 +25,10 @@ public class SiteApiController {
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping
-    public ResponseEntity<List<Site>> getSites() {
+    public ResponseEntity<Map<String, List<Site>>> getOwnSites() {
         String username = principalProvider.getAuthentication().getName();
-        List<Site> page = siteService.getOwnSites(username);
-        return ResponseEntity.ok(page);
+        List<Site> sites = siteService.getOwnSites(username);
+        return ResponseEntity.ok(Map.of("sites", sites));
     }
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
@@ -40,16 +40,16 @@ public class SiteApiController {
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/{id}")
-    public ResponseEntity<Site> getSite(@PathVariable String id) {
-        Site site = siteService.getSite(id);
-        return ResponseEntity.ok(site);
+    public ResponseEntity<Map<String, Site>> getSiteById(@PathVariable String id) {
+        Site site = siteService.getSiteById(id);
+        return ResponseEntity.ok(Map.of("site", site));
     }
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @PutMapping("/{id}")
-    public ResponseEntity<Site> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) {
+    public ResponseEntity<Map<String, Site>> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) {
         Site site = siteService.updateSite(id, command);
-        return ResponseEntity.ok(site);
+        return ResponseEntity.ok(Map.of("site", site));
     }
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
