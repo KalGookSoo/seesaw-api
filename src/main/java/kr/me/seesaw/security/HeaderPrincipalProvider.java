@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -37,6 +38,7 @@ public class HeaderPrincipalProvider implements PrincipalProvider {
             } catch (Exception e) {
                 // 토큰 검증 실패 시 로그 기록
                 logger.error("JWT 토큰 검증 실패: {}", e.getMessage());
+                throw new BadCredentialsException("계정 인증에 실패했습니다.");
             }
         }
         // 토큰이 없거나 유효하지 않은 경우 null 반환 (인증되지 않은 요청으로 처리)

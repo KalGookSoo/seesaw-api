@@ -1,8 +1,8 @@
 package kr.me.seesaw.service;
 
+import kr.me.seesaw.command.SignInCommand;
 import kr.me.seesaw.domain.RoleMapping;
 import kr.me.seesaw.domain.User;
-import kr.me.seesaw.command.SignInCommand;
 import kr.me.seesaw.model.JsonWebToken;
 import kr.me.seesaw.model.UserPrincipal;
 import kr.me.seesaw.repository.RoleMappingRepository;
@@ -70,28 +70,11 @@ public class DefaultAuthenticationService implements AuthenticationService {
         }
 
         // 액세스 토큰과 리프레시 토큰 생성
-        JwtTokenProvider.TokenInfo tokenInfo = jwtTokenProvider.generateTokenInfo(userPrincipal);
-
-        return new JsonWebToken(
-                tokenInfo.getAccessToken(),
-                tokenInfo.getRefreshToken(),
-                tokenInfo.getAccessTokenExpiresIn()
-        );
+        return jwtTokenProvider.generateTokenInfo(userPrincipal);
     }
 
     @Override
     public JsonWebToken refreshToken(String refreshToken) {
-        try {
-            // JwtTokenProvider를 사용하여 리프레시 토큰으로 새 토큰 발급
-            JwtTokenProvider.TokenInfo tokenInfo = jwtTokenProvider.refreshToken(refreshToken);
-
-            return new JsonWebToken(
-                    tokenInfo.getAccessToken(),
-                    tokenInfo.getRefreshToken(),
-                    tokenInfo.getAccessTokenExpiresIn()
-            );
-        } catch (Exception e) {
-            throw new BadCredentialsException("유효하지 않은 리프레시 토큰입니다: " + e.getMessage());
-        }
+        return jwtTokenProvider.refreshToken(refreshToken);
     }
 }

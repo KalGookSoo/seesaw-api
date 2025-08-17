@@ -1,13 +1,15 @@
 package kr.me.seesaw.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.io.Serializable;
+
+@ToString
+@EqualsAndHashCode
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class JsonWebToken {
+public class JsonWebToken implements Serializable {
 
     private String accessToken;
 
