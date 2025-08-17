@@ -38,21 +38,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAuthenticationException(AuthenticationException ex) {
         logger.error("AuthenticationException: {}", ex.getMessage());
         String message = messageSource.getMessage("error.access.denied");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", message));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", message));
     }
 
     @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleAuthenticationCredentialsNotFoundException(AuthenticationCredentialsNotFoundException ex) {
+    public ResponseEntity<Map<String, String>> handleAuthenticationCredentialsNotFoundException(
+            AuthenticationCredentialsNotFoundException ex
+    ) {
         logger.error("AuthenticationCredentialsNotFoundException: {}", ex.getMessage());
         String message = messageSource.getMessage("error.access.denied");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", message));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", message));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         logger.error("RuntimeException: {}", ex.getMessage());
         String message = messageSource.getMessage("error.internal.server.error.message");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", message));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", message));
     }
 
     @Override
@@ -67,7 +72,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .stream()
                 .map(ValidationError::new)
                 .toList();
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("errors", errors));
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(Map.of("errors", errors));
     }
 
 }

@@ -17,4 +17,5 @@ public class TokenRefreshCommand {
     
     @NotBlank
     private String refreshToken;
+
 }
