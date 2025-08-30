@@ -32,11 +32,8 @@ public class SecurityConfig {
 
     private final String secretKey;
 
-    private final RequestMappingHandlerMapping requestMappingHandlerMapping;
-
-    public SecurityConfig(@Value("${jwt.secret.key}") String secretKey, RequestMappingHandlerMapping requestMappingHandlerMapping) {
+    public SecurityConfig(@Value("${jwt.secret.key}") String secretKey) {
         this.secretKey = secretKey;
-        this.requestMappingHandlerMapping = requestMappingHandlerMapping;
     }
 
     @Bean
@@ -45,13 +42,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PrincipalProvider principalProvider() {
-        return new HeaderPrincipalProvider(jwtTokenProvider());
+    public PrincipalProvider principalProvider(JwtTokenProvider jwtTokenProvider) {
+        return new HeaderPrincipalProvider(jwtTokenProvider);
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(principalProvider(), requestMappingHandlerMapping);
+    public JwtAuthenticationFilter jwtAuthenticationFilter(PrincipalProvider principalProvider, RequestMappingHandlerMapping requestMappingHandlerMapping) {
+        return new JwtAuthenticationFilter(principalProvider, requestMappingHandlerMapping);
     }
 
     @Bean
@@ -60,14 +57,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
         http.cors(this::handleCorsPolicies);
         http.authorizeHttpRequests(this::handleAuthorizeHttpRequests);
         http.sessionManagement(this::handleSeesionManagement);
 
         // JWT 인증 필터 추가
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

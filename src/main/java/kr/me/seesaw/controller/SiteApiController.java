@@ -45,6 +45,12 @@ public class SiteApiController {
         return ResponseEntity.ok(Map.of("site", site));
     }
 
+    @GetMapping("/by-domain/{domainName}")
+    public ResponseEntity<Map<String, Site>> getSiteContext(@PathVariable("domainName") String domainName) {
+        Site site = siteService.getSiteContext(domainName);
+        return ResponseEntity.ok(Map.of("site", site));
+    }
+
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, Site>> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) {
