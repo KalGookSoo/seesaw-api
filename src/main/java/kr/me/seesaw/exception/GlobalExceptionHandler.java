@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,7 +39,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handleAuthenticationException(AuthenticationException ex) {
-        logger.error("AuthenticationException: {}", ex.getMessage());
+        logger.error(ex.getMessage());
+        String message = messageSource.getMessage("error.access.denied");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        logger.error(ex.getMessage());
         String message = messageSource.getMessage("error.access.denied");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("message", message));
@@ -48,7 +57,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAuthenticationCredentialsNotFoundException(
             AuthenticationCredentialsNotFoundException ex
     ) {
-        logger.error("AuthenticationCredentialsNotFoundException: {}", ex.getMessage());
+        logger.error(ex.getMessage());
         String message = messageSource.getMessage("error.access.denied");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("message", message));
