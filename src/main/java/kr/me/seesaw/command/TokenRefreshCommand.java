@@ -1,21 +1,19 @@
 package kr.me.seesaw.command;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.io.Serializable;
 
 /**
  * 토큰 갱신 요청 명령
  */
+@ToString
+@EqualsAndHashCode
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TokenRefreshCommand {
-    
+public class TokenRefreshCommand implements Serializable {
     @NotBlank
     private String refreshToken;
-
 }
