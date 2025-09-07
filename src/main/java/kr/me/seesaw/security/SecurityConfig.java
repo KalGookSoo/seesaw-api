@@ -29,15 +29,8 @@ import java.util.Collections;
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
-
-    private final String secretKey;
-
-    public SecurityConfig(@Value("${jwt.secret.key}") String secretKey) {
-        this.secretKey = secretKey;
-    }
-
     @Bean
-    public JwtTokenProvider jwtTokenProvider() {
+    public JwtTokenProvider jwtTokenProvider(@Value("${jwt.secret.key}") String secretKey) {
         return new JwtTokenProvider(secretKey);
     }
 
@@ -47,8 +40,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(PrincipalProvider principalProvider, RequestMappingHandlerMapping requestMappingHandlerMapping) {
-        return new JwtAuthenticationFilter(principalProvider, requestMappingHandlerMapping);
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, RequestMappingHandlerMapping requestMappingHandlerMapping) {
+        return new JwtAuthenticationFilter(jwtTokenProvider, requestMappingHandlerMapping);
     }
 
     @Bean
@@ -92,5 +85,4 @@ public class SecurityConfig {
     private void handleSeesionManagement(SessionManagementConfigurer<HttpSecurity> httpSecuritySessionManagementConfigurer) {
         httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
-
 }

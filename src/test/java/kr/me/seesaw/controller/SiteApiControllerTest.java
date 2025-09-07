@@ -74,10 +74,6 @@ class SiteApiControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
     }
-    
-    
-
-
 
     @Test
     @DisplayName("사이트 생성 - 유효 요청 본문이면 2xx와 생성된 사이트 반환")

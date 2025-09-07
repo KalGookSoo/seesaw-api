@@ -7,6 +7,7 @@ import kr.me.seesaw.model.CategoryModel;
 import kr.me.seesaw.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,18 +31,21 @@ public class CategoryApiController {
         return ResponseEntity.ok(Map.of("category", model));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PostMapping
     public ResponseEntity<Map<String, CategoryModel>> createCategory(@Valid @RequestBody CreateCategoryCommand command) {
         CategoryModel category = categoryService.createCategory(command);
         return ResponseEntity.ok(Map.of("category", category));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, CategoryModel>> updateCategory(@PathVariable("id") String id, @Valid @RequestBody UpdateCategoryCommand command) {
         CategoryModel model = categoryService.update(id, command);
         return ResponseEntity.ok(Map.of("category", model));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable String id) {
         categoryService.deleteCategoryById(id);

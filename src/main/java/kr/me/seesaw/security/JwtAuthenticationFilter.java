@@ -4,13 +4,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.me.seesaw.core.authentication.PrincipalProvider;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    private final PrincipalProvider principalProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
 
@@ -36,13 +37,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        Authentication authentication = principalProvider.getAuthentication();
+        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        // 인증 객체가 존재하면 SecurityContext에 설정
-        if (authentication != null) {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Bearer 토큰이 존재하는 경우 처리
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7); // "Bearer " 이후의 토큰 추출
+            try {
+                Authentication authentication = jwtTokenProvider.validateTokenAndGetAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (Exception e) {
+                // 토큰 검증 실패 시 로그 기록
+                logger.error("JWT 토큰 검증 실패: {}", e.getMessage());
+                throw new BadCredentialsException("계정 인증에 실패했습니다.");
+            }
         }
-
         filterChain.doFilter(request, response);
     }
 
