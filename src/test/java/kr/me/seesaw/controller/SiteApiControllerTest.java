@@ -1,5 +1,8 @@
 package kr.me.seesaw.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import kr.me.seesaw.command.CreateSiteCommand;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
 import kr.me.seesaw.domain.Site;
 import kr.me.seesaw.service.SiteService;
@@ -10,6 +13,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -19,18 +23,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.http.MediaType;
-import kr.me.seesaw.command.CreateSiteCommand;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.anyString;
+
 @ActiveProfiles("test")
-@AutoConfigureMockMvc
-@WebMvcTest(controllers = SiteApiController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@WebMvcTest(controllers = {SiteApiController.class})
 class SiteApiControllerTest {
 
     @Autowired
@@ -68,7 +70,7 @@ class SiteApiControllerTest {
         Set<SimpleGrantedAuthority> authorities = Collections.singleton(authority);
         AnonymousAuthenticationToken token = new AnonymousAuthenticationToken("admin", User.withUsername("admin"), authorities);
         Mockito.when(principalProvider.getAuthentication()).thenReturn(token);
-        Mockito.when(siteService.getOwnSites(token.getName())).thenReturn(sites);
+        Mockito.when(siteService.getOwnSites(anyString())).thenReturn(sites);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/sites"))
                 .andDo(MockMvcResultHandlers.print())
@@ -95,7 +97,7 @@ class SiteApiControllerTest {
         body.put("intro", "intro");
         body.put("content", "content");
 
-        Site created = Site.create("site-name","example.com","desc","code",true,true,"tag1,tag2",null,"010-0000-0000","intro","content");
+        Site created = Site.create("site-name", "example.com", "desc", "code", true, true, "tag1,tag2", null, "010-0000-0000", "intro", "content");
         Mockito.when(siteService.createSite(Mockito.any(CreateSiteCommand.class))).thenReturn(created);
 
         mockMvc.perform(
@@ -110,7 +112,7 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("사이트 단건 조회 - 존재하면 2xx와 사이트 반환")
     void getSiteById() throws Exception {
-        Site site = Site.create("s","example.com","desc","code",true,true,"tags",null,"010","intro","content");
+        Site site = Site.create("s", "example.com", "desc", "code", true, true, "tags", null, "010", "intro", "content");
         Mockito.when(siteService.getSiteById("id-1")).thenReturn(site);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/sites/{id}", "id-1"))
@@ -121,7 +123,7 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("도메인으로 컨텍스트 조회 - 공개 API 2xx")
     void getSiteContext() throws Exception {
-        Site site = Site.create("s","example.com","desc","code",true,true,"tags",null,"010","intro","content");
+        Site site = Site.create("s", "example.com", "desc", "code", true, true, "tags", null, "010", "intro", "content");
         Mockito.when(siteService.getSiteContext("example.com")).thenReturn(site);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/sites/by-domain/{domain}", "example.com"))
@@ -149,7 +151,7 @@ class SiteApiControllerTest {
         body.put("intro", "intro");
         body.put("content", "content");
 
-        Site site = Site.create("updated","example.com","desc","code",true,true,"tag1",null,"010","intro","content");
+        Site site = Site.create("updated", "example.com", "desc", "code", true, true, "tag1", null, "010", "intro", "content");
         Mockito.when(siteService.updateSite(Mockito.eq("id-1"), Mockito.any(CreateSiteCommand.class))).thenReturn(site);
 
         mockMvc.perform(

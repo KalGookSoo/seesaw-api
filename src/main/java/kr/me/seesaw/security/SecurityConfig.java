@@ -1,6 +1,7 @@
 package kr.me.seesaw.security;
 
 import kr.me.seesaw.core.authentication.PrincipalProvider;
+import kr.me.seesaw.core.authentication.SecurityPrincipalProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +36,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PrincipalProvider principalProvider(JwtTokenProvider jwtTokenProvider) {
-        return new HeaderPrincipalProvider(jwtTokenProvider);
+    public PrincipalProvider principalProvider() {
+        return new SecurityPrincipalProvider();
     }
 
     @Bean

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class SiteApiController {
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @PostMapping
-    public ResponseEntity<Map<String, Site>> createSite(@RequestBody @Valid CreateSiteCommand command) {
+    public ResponseEntity<Map<String, Site>> createSite(@RequestBody @Valid CreateSiteCommand command) throws IOException {
         Site site = siteService.createSite(command);
         return ResponseEntity.ok(Map.of("site", site));
     }
@@ -53,7 +54,7 @@ public class SiteApiController {
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Site>> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) {
+    public ResponseEntity<Map<String, Site>> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) throws IOException {
         Site site = siteService.updateSite(id, command);
         return ResponseEntity.ok(Map.of("site", site));
     }
