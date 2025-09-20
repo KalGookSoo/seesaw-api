@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import kr.me.seesaw.command.CreateSiteCommand;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
 import kr.me.seesaw.domain.Site;
+import kr.me.seesaw.model.SiteModel;
 import kr.me.seesaw.service.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,8 +35,8 @@ public class SiteApiController {
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @PostMapping
-    public ResponseEntity<Map<String, Site>> createSite(@RequestBody @Valid CreateSiteCommand command) throws IOException {
-        Site site = siteService.createSite(command);
+    public ResponseEntity<Map<String, SiteModel>> createSite(@RequestBody @Valid CreateSiteCommand command) throws IOException {
+        SiteModel site = siteService.createSite(command);
         return ResponseEntity.ok(Map.of("site", site));
     }
 

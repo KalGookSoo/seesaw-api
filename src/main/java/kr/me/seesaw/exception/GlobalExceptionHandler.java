@@ -1,6 +1,7 @@
 package kr.me.seesaw.exception;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.persistence.EntityNotFoundException;
 import kr.me.seesaw.core.validation.ValidationError;
 import kr.me.seesaw.message.CmsMessageSource;
 import lombok.RequiredArgsConstructor;
@@ -83,6 +84,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         String message = messageSource.getMessage("error.not.found.resource");
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        return handleNoSuchElementException(new NoSuchElementException(ex));
     }
 
     @Override

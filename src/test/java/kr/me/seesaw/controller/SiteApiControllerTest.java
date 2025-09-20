@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import kr.me.seesaw.command.CreateSiteCommand;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
 import kr.me.seesaw.domain.Site;
+import kr.me.seesaw.model.SiteModel;
 import kr.me.seesaw.service.SiteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -97,8 +98,7 @@ class SiteApiControllerTest {
         body.put("intro", "intro");
         body.put("content", "content");
 
-        Site created = Site.create("site-name", "example.com", "desc", "code", true, true, "tag1,tag2", null, "010-0000-0000", "intro", "content");
-        Mockito.when(siteService.createSite(Mockito.any(CreateSiteCommand.class))).thenReturn(created);
+        Mockito.when(siteService.createSite(Mockito.any(CreateSiteCommand.class))).thenReturn(Mockito.mock(SiteModel.class));
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/api/sites")
