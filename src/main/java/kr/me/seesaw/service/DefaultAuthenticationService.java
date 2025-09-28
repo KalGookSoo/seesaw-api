@@ -1,11 +1,11 @@
 package kr.me.seesaw.service;
 
 import kr.me.seesaw.command.SignInCommand;
+import kr.me.seesaw.domain.Role;
 import kr.me.seesaw.domain.RoleMapping;
 import kr.me.seesaw.domain.User;
 import kr.me.seesaw.model.JsonWebToken;
 import kr.me.seesaw.model.UserPrincipal;
-import kr.me.seesaw.repository.RoleMappingRepository;
 import kr.me.seesaw.repository.RoleRepository;
 import kr.me.seesaw.repository.UserRepository;
 import kr.me.seesaw.security.JwtTokenProvider;
@@ -26,8 +26,6 @@ public class DefaultAuthenticationService implements AuthenticationService {
 
     private final UserRepository userRepository;
 
-    private final RoleMappingRepository roleMappingRepository;
-
     private final RoleRepository roleRepository;
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -41,9 +39,10 @@ public class DefaultAuthenticationService implements AuthenticationService {
                 .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
 
         // 사용자가 가진 역할 조회
-        List<RoleMapping> mappings = roleMappingRepository.findAllByUserId(user.getId());
+        List<RoleMapping> mappings = user.getRoleMappings();
         List<String> roleIds = mappings.stream()
-                .map(RoleMapping::getRoleId)
+                .map(RoleMapping::getRole)
+                .map(Role::getId)
                 .toList();
 
         // 사용자가 가진 역할 할당
@@ -77,4 +76,5 @@ public class DefaultAuthenticationService implements AuthenticationService {
     public JsonWebToken refreshToken(String refreshToken) {
         return jwtTokenProvider.refreshToken(refreshToken);
     }
+
 }
