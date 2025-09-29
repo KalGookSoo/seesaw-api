@@ -3,7 +3,6 @@ package kr.me.seesaw.controller;
 import jakarta.validation.Valid;
 import kr.me.seesaw.command.CreateSiteCommand;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
-import kr.me.seesaw.domain.Site;
 import kr.me.seesaw.model.SiteModel;
 import kr.me.seesaw.service.SiteService;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +26,9 @@ public class SiteApiController {
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping
-    public ResponseEntity<Map<String, List<Site>>> getOwnSites() {
+    public ResponseEntity<Map<String, List<SiteModel>>> getOwnSites() {
         String username = principalProvider.getAuthentication().getName();
-        List<Site> sites = siteService.getOwnSites(username);
+        List<SiteModel> sites = siteService.getOwnSites(username);
         return ResponseEntity.ok(Map.of("sites", sites));
     }
 
@@ -42,21 +41,21 @@ public class SiteApiController {
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Site>> getSiteById(@PathVariable String id) {
-        Site site = siteService.getSiteById(id);
+    public ResponseEntity<Map<String, SiteModel>> getSiteById(@PathVariable String id) {
+        SiteModel site = siteService.getSiteById(id);
         return ResponseEntity.ok(Map.of("site", site));
     }
 
     @GetMapping("/by-domain/{domainName}")
-    public ResponseEntity<Map<String, Site>> getSiteContext(@PathVariable("domainName") String domainName) {
-        Site site = siteService.getSiteContext(domainName);
+    public ResponseEntity<Map<String, SiteModel>> getSiteContext(@PathVariable("domainName") String domainName) {
+        SiteModel site = siteService.getSiteContext(domainName);
         return ResponseEntity.ok(Map.of("site", site));
     }
 
     @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER')")
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Site>> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) throws IOException {
-        Site site = siteService.updateSite(id, command);
+    public ResponseEntity<Map<String, SiteModel>> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) throws IOException {
+        SiteModel site = siteService.updateSite(id, command);
         return ResponseEntity.ok(Map.of("site", site));
     }
 

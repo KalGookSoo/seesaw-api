@@ -5,6 +5,8 @@ import kr.me.seesaw.domain.Role;
 import kr.me.seesaw.domain.RoleMapping;
 import kr.me.seesaw.domain.User;
 import kr.me.seesaw.model.JsonWebToken;
+import kr.me.seesaw.model.RoleModel;
+import kr.me.seesaw.model.UserModel;
 import kr.me.seesaw.model.UserPrincipal;
 import kr.me.seesaw.repository.RoleRepository;
 import kr.me.seesaw.repository.UserRepository;
@@ -45,10 +47,12 @@ public class DefaultAuthenticationService implements AuthenticationService {
                 .map(Role::getId)
                 .toList();
 
-        // 사용자가 가진 역할 할당
-        new LinkedHashSet<>(roleRepository.findAllByIdIn(roleIds)).forEach(user::addRole);
+        // 사용자가 가진 역할을 모델에 할당
+        List<Role> roles = new LinkedHashSet<>(roleRepository.findAllByIdIn(roleIds)).stream().toList();
+        UserModel userModel = new UserModel(user);
+        roles.stream().map(RoleModel::new).forEach(userModel::addRole);
 
-        UserPrincipal userPrincipal = new UserPrincipal(user);
+        UserPrincipal userPrincipal = new UserPrincipal(userModel);
 
         // 패스워드 검증
         if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {

@@ -1,6 +1,5 @@
 package kr.me.seesaw.model;
 
-import kr.me.seesaw.domain.Role;
 import kr.me.seesaw.domain.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,9 +10,9 @@ import java.util.stream.Collectors;
 
 public class UserPrincipal implements UserDetails {
 
-    private final User user;
+    private final UserModel user;
 
-    public UserPrincipal(User user) {
+    public UserPrincipal(UserModel user) {
         this.user = user;
     }
 
@@ -21,7 +20,7 @@ public class UserPrincipal implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles()
                 .stream()
-                .map(Role::getName)
+                .map(RoleModel::getName)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
     }

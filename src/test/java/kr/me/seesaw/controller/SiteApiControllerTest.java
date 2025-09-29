@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import kr.me.seesaw.command.CreateSiteCommand;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
-import kr.me.seesaw.domain.Site;
 import kr.me.seesaw.model.SiteModel;
 import kr.me.seesaw.service.SiteService;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,20 +51,7 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("권한을 가진 사이트 목록 요청 - 인증 필요, ADMIN/MANAGER 2xx")
     void getOwnSites() throws Exception {
-        Site site = Site.create(
-                "s",
-                "example.com",
-                "desc",
-                "code",
-                true,
-                true,
-                "tags",
-                null,
-                "010",
-                "intro",
-                "content"
-        );
-        List<Site> sites = Collections.singletonList(site);
+        List<SiteModel> sites = Collections.singletonList(Mockito.mock(SiteModel.class));
 
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_ADMIN");
         Set<SimpleGrantedAuthority> authorities = Collections.singleton(authority);
@@ -112,8 +98,7 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("사이트 단건 조회 - 존재하면 2xx와 사이트 반환")
     void getSiteById() throws Exception {
-        Site site = Site.create("s", "example.com", "desc", "code", true, true, "tags", null, "010", "intro", "content");
-        Mockito.when(siteService.getSiteById("id-1")).thenReturn(site);
+        Mockito.when(siteService.getSiteById("id-1")).thenReturn(Mockito.mock(SiteModel.class));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/sites/{id}", "id-1"))
                 .andDo(MockMvcResultHandlers.print())
@@ -123,8 +108,7 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("도메인으로 컨텍스트 조회 - 공개 API 2xx")
     void getSiteContext() throws Exception {
-        Site site = Site.create("s", "example.com", "desc", "code", true, true, "tags", null, "010", "intro", "content");
-        Mockito.when(siteService.getSiteContext("example.com")).thenReturn(site);
+        Mockito.when(siteService.getSiteContext("example.com")).thenReturn(Mockito.mock(SiteModel.class));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/sites/by-domain/{domain}", "example.com"))
                 .andDo(MockMvcResultHandlers.print())
@@ -151,8 +135,7 @@ class SiteApiControllerTest {
         body.put("intro", "intro");
         body.put("content", "content");
 
-        Site site = Site.create("updated", "example.com", "desc", "code", true, true, "tag1", null, "010", "intro", "content");
-        Mockito.when(siteService.updateSite(Mockito.eq("id-1"), Mockito.any(CreateSiteCommand.class))).thenReturn(site);
+        Mockito.when(siteService.updateSite(Mockito.eq("id-1"), Mockito.any(CreateSiteCommand.class))).thenReturn(Mockito.mock(SiteModel.class));
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/api/sites/{id}", "id-1")
