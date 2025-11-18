@@ -30,6 +30,7 @@ import java.util.Collections;
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
+
     @Bean
     public JwtTokenProvider jwtTokenProvider(@Value("${jwt.secret.key}") String secretKey) {
         return new JwtTokenProvider(secretKey);
@@ -77,6 +78,7 @@ public class SecurityConfig {
 
     private void handleAuthorizeHttpRequests(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry config) {
         config.requestMatchers(new AntPathRequestMatcher("/favicon.ico")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/actuator/info")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/actuator/health")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasRole("ADMIN")
                 .anyRequest()
@@ -86,4 +88,5 @@ public class SecurityConfig {
     private void handleSeesionManagement(SessionManagementConfigurer<HttpSecurity> httpSecuritySessionManagementConfigurer) {
         httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
+
 }
