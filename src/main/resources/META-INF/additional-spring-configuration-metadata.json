@@ -5,12 +5,6 @@
       "type": "java.nio.file.Path",
       "description": "첨부 파일을 저장하고 읽어올 기본 디렉터리 경로입니다.",
       "defaultValue": "${user.home}/seesaw/files"
-    },
-    {
-      "name": "app.version",
-      "type": "java.lang.String",
-      "description": "애플리케이션 버전입니다.",
-      "defaultValue": "0.0.1-SNAPSHOT"
     }
   ],
   "hints": [
