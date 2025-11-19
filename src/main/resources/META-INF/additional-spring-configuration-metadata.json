@@ -4,7 +4,7 @@
       "name": "kr.me.seesaw.filepath",
       "type": "java.nio.file.Path",
       "description": "첨부 파일을 저장하고 읽어올 기본 디렉터리 경로입니다.",
-      "defaultValue": "${user.home}/seesaw/files"
+      "defaultValue": "${user.home}/attachments"
     }
   ],
   "hints": [
@@ -12,11 +12,11 @@
       "name": "kr.me.seesaw.filepath",
       "values": [
         {
-          "value": "/var/seesaw/files",
+          "value": "/var/seesaw/attachments",
           "description": "운영 서버 권장 기본 경로"
         },
         {
-          "value": "${user.home}/seesaw/files",
+          "value": "${user.home}/attachments",
           "description": "로컬 개발 기본 경로"
         }
       ],
