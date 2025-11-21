@@ -22,7 +22,7 @@ public class CategoryApiController {
     @GetMapping("/by-site-id/{siteId}")
     public ResponseEntity<Map<String, List<CategoryModel>>> getCategories(@PathVariable("siteId") String siteId) {
         List<CategoryModel> models = categoryService.getCategoriesBySiteId(siteId);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(Map.of("categories", models));
     }
 
     @GetMapping("/{id}")
