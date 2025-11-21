@@ -24,7 +24,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -67,11 +67,29 @@ public class SecurityConfig {
     private void handleCorsPolicies(CorsConfigurer<HttpSecurity> config) {
         config.configurationSource(request -> {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOriginPatterns(Collections.singletonList("/**"));
-            configuration.setAllowedOrigins(Collections.singletonList(request.getHeader(HttpHeaders.ORIGIN)));
-            configuration.setAllowedMethods(Arrays.asList(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(), HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name()));
-            configuration.setAllowedHeaders(Arrays.asList(HttpHeaders.AUTHORIZATION, HttpHeaders.CACHE_CONTROL, HttpHeaders.CONTENT_TYPE));
+            configuration.setAllowedOriginPatterns(Arrays.asList(
+                    "http://localhost:*",
+                    "http://127.0.0.1:*",
+                    "https://*.seesaw.me.kr"
+            ));
+            configuration.setAllowedMethods(Arrays.asList(
+                    HttpMethod.GET.name(),
+                    HttpMethod.POST.name(),
+                    HttpMethod.PUT.name(),
+                    HttpMethod.DELETE.name(),
+                    HttpMethod.PATCH.name(),
+                    HttpMethod.OPTIONS.name()
+            ));
+            configuration.setAllowedHeaders(List.of("*"));
+            configuration.setExposedHeaders(Arrays.asList(
+                    HttpHeaders.AUTHORIZATION,
+                    HttpHeaders.CONTENT_TYPE
+            ));
+
+            // 인증 정보 허용
             configuration.setAllowCredentials(true);
+            // Preflight 요청 캐시 시간 (초)
+            configuration.setMaxAge(3600L);
             return configuration;
         });
     }
