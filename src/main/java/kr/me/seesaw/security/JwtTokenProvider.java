@@ -11,11 +11,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -40,8 +42,7 @@ public class JwtTokenProvider {
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
-
-        String accessToken = generateAccessToken(userPrincipal.getUsername(), authorities);
+        String accessToken = generateAccessToken(userPrincipal.getUsername(), userPrincipal.getUser().getId(), authorities);
         String refreshToken = generateRefreshToken(userPrincipal.getUsername());
         return new JsonWebToken(accessToken, refreshToken, ACCESS_TOKEN_EXPIRATION);
     }
@@ -49,13 +50,14 @@ public class JwtTokenProvider {
     /**
      * 계정 인증 주체 정보를 암호화한 액세스 토큰을 반환합니다.
      */
-    private String generateAccessToken(String username, Collection<String> authorities) {
+    private String generateAccessToken(String username, String userId, Collection<String> authorities) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION);
         SecretKey secretKey = Keys.hmacShaKeyFor(this.secretKey.getBytes(StandardCharsets.UTF_8));
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("userId", userId)
                 .claim("authorities", authorities)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
@@ -86,40 +88,34 @@ public class JwtTokenProvider {
      * @param refreshToken 리프레시 토큰
      * @return 새로운 토큰 정보 객체
      */
-    public JsonWebToken refreshToken(String refreshToken) {
-        // 리프레시 토큰 유효성 검증
-        SecretKey key = Keys.hmacShaKeyFor(this.secretKey.getBytes(StandardCharsets.UTF_8));
+    /**
+     * 리프레시 토큰을 검증하고 사용자명을 반환합니다.
+     *
+     * @param refreshToken 리프레시 토큰
+     * @return 사용자명
+     */
+    public String validateRefreshToken(String refreshToken) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(this.secretKey.getBytes(StandardCharsets.UTF_8));
 
-        // 리프레시 토큰 파싱
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(refreshToken)
-                .getBody();
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(refreshToken)
+                    .getBody();
 
-        // 사용자명 추출
-        String username = claims.getSubject();
-
-        // 기존 액세스 토큰에서 권한 정보 추출을 위해 인증 객체 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Collection<String> authorities;
-
-        if (authentication != null && authentication.getAuthorities() != null) {
-            authorities = authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
-        } else {
-            // 인증 정보가 없는 경우 빈 권한 목록 사용
-            authorities = Collections.emptyList();
+            return claims.getSubject();
+        } catch (SignatureException e) {
+            throw new BadCredentialsException("유효하지 않은 JWT 서명입니다.");
+        } catch (MalformedJwtException e) {
+            throw new BadCredentialsException("유효하지 않은 JWT 토큰입니다.");
+        } catch (ExpiredJwtException e) {
+            throw new BadCredentialsException("만료된 JWT 토큰입니다.");
+        } catch (UnsupportedJwtException e) {
+            throw new BadCredentialsException("지원되지 않는 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            throw new BadCredentialsException("JWT 토큰이 비어있습니다.");
         }
-
-        // 새로운 액세스 토큰 생성
-        String newAccessToken = generateAccessToken(username, authorities);
-
-        // 새로운 리프레시 토큰 생성 (선택적)
-        String newRefreshToken = generateRefreshToken(username);
-
-        return new JsonWebToken(newAccessToken, newRefreshToken, ACCESS_TOKEN_EXPIRATION);
     }
 
     /**

@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Bearer 토큰이 존재하는 경우 처리
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7); // "Bearer " 이후의 토큰 추출
+            String token = authorizationHeader.substring(7);
             try {
                 Authentication authentication = jwtTokenProvider.validateTokenAndGetAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -72,6 +72,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return true;
         }
         return true;
-
     }
+
 }

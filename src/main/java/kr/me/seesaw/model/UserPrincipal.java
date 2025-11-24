@@ -8,12 +8,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class UserPrincipal implements UserDetails {
+public final class UserPrincipal implements UserDetails {
 
     private final UserModel user;
 
     public UserPrincipal(UserModel user) {
         this.user = user;
+    }
+
+    public UserModel getUser() {
+        return user;
     }
 
     @Override

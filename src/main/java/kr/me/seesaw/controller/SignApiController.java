@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class SignApiController {
+
     private final AuthenticationService authenticationService;
 
     @PostMapping("/sign-in")
@@ -26,6 +27,7 @@ public class SignApiController {
 
     /**
      * 리프레시 토큰을 사용하여 새로운 액세스 토큰 발급
+     *
      * @param command 토큰 갱신 요청
      * @return 새로운 JWT 토큰이 포함된 응답
      */
@@ -34,4 +36,5 @@ public class SignApiController {
         JsonWebToken response = authenticationService.refreshToken(command.getRefreshToken());
         return ResponseEntity.ok(response);
     }
+
 }

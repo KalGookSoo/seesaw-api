@@ -20,9 +20,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class DefaultAuthenticationService implements AuthenticationService {
@@ -35,26 +37,18 @@ public class DefaultAuthenticationService implements AuthenticationService {
 
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * 사용자 로그인을 처리합니다.
+     *
+     * @param command 로그인 정보
+     * @return JsonWebToken
+     */
     @Transactional(readOnly = true)
     @Override
     public JsonWebToken authenticate(SignInCommand command) {
         // 사용자 조회
         User user = userRepository.findByUsername(command.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
-
-        // 사용자가 가진 역할 조회
-        List<RoleMapping> mappings = user.getRoleMappings();
-        List<String> roleIds = mappings.stream()
-                .map(RoleMapping::getRole)
-                .map(Role::getId)
-                .toList();
-
-        // 사용자가 가진 역할을 모델에 할당
-        List<Role> roles = new LinkedHashSet<>(roleRepository.findAllByIdIn(roleIds)).stream().toList();
-        UserModel userModel = new UserModel(user);
-        roles.stream().map(RoleModel::new).forEach(userModel::addRole);
-
-        UserPrincipal userPrincipal = new UserPrincipal(userModel);
 
         // 패스워드 검증
         if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {
@@ -75,12 +69,59 @@ public class DefaultAuthenticationService implements AuthenticationService {
         }
 
         // 액세스 토큰과 리프레시 토큰 생성
+        UserPrincipal userPrincipal = createUserPrincipal(user);
         return jwtTokenProvider.generateTokenInfo(userPrincipal);
     }
 
+    /**
+     * 리프레시 토큰을 사용하여 액세스 토큰을 재발급합니다.
+     *
+     * @param refreshToken 리프레시 토큰
+     * @return JsonWebToken
+     */
+    @Transactional(readOnly = true)
     @Override
     public JsonWebToken refreshToken(String refreshToken) {
-        return jwtTokenProvider.refreshToken(refreshToken);
+        String username = jwtTokenProvider.validateRefreshToken(refreshToken);
+        UserPrincipal userPrincipal = loadUserPrincipal(username);
+        return jwtTokenProvider.generateTokenInfo(userPrincipal);
+    }
+
+    /**
+     * 사용자 정보를 기반으로 UserPrincipal을 생성합니다.
+     *
+     * @param username 사용자명
+     * @return UserPrincipal
+     */
+    private UserPrincipal loadUserPrincipal(String username) {
+        // 사용자 조회
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
+
+        return createUserPrincipal(user);
+    }
+
+    /**
+     * 사용자 정보를 기반으로 UserPrincipal을 생성합니다.
+     *
+     * @param user 사용자 정보
+     * @return UserPrincipal
+     */
+    private UserPrincipal createUserPrincipal(User user) {
+        List<String> roleIds = user.getRoleMappings()
+                .stream()
+                .map(RoleMapping::getRole)
+                .map(Role::getId)
+                .toList();
+        List<Role> roles = roleRepository.findAllByIdIn(roleIds);
+        Set<RoleModel> roleModels = roles.stream()
+                .map(RoleModel::new)
+                .collect(Collectors.toSet());
+
+        UserModel userModel = new UserModel(user);
+        roleModels.forEach(userModel::addRole);
+
+        return new UserPrincipal(userModel);
     }
 
 }
