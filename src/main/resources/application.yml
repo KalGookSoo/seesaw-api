@@ -1,0 +1,127 @@
+server:
+  servlet:
+    context-path: /seesaw-api
+  address: localhost
+  port: 8080
+
+spring:
+  application:
+    name: seesaw-api
+    version: 0.0.1-SNAPSHOT
+  
+  # DataSource
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  datasource:
+    url: jdbc:h2:file:./testdb
+    driver-class-name: org.h2.Driver
+    username: tester
+    password: tester
+  
+  # JPA
+  jpa:
+    properties:
+      hibernate:
+        highlight_sql: true
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  
+  # Lazy initialization
+  main:
+    lazy-initialization: true
+  
+  # HTML 비표준 HTTP method(ex - PUT, DELETE ..)를 활성화 합니다.
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+  
+  # 웹 리소스(image, CSS, JS 파일 등)의 캐시 만료 시간을 초단위로 설정합니다.
+  web:
+    resources:
+      cache:
+        period: 5
+  
+  # 메시지 파일(i18n 지원 파일)의 캐시 만료 시간을 초 단위로 설정합니다. 메시지 변경 사항이 즉시 반영됩니다.
+  messages:
+    cache-duration: 5
+  
+  data:
+    rest:
+      base-path: /rest-api
+  
+  # Attachment
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 200MB
+      max-request-size: 215MB
+  
+  thymeleaf:
+    check-template-location: false
+  
+  # Logging
+  output:
+    ansi:
+      enabled: always
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: ${spring.application.name}
+    version: ${spring.application.version}
+    profiles: ${spring.profiles.active:default}
+
+# Logging
+logging:
+  level:
+    root: info
+    org:
+      springframework:
+        web: debug
+        security: info
+        orm:
+          jpa: info
+      hibernate:
+        sql: debug
+        orm:
+          jdbc:
+            bind: trace
+            extract: off
+      springdoc:
+        core:
+          utils:
+            SpringDocAnnotationsUtils: error
+
+# Attachment
+kr:
+  me:
+    seesaw:
+      filepath: ${user.home}/attachments
+
+# Swagger/OpenAPI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: kr.me.seesaw.controller
