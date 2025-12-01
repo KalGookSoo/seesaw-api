@@ -70,7 +70,8 @@ public class SecurityConfig {
             configuration.setAllowedOriginPatterns(Arrays.asList(
                     "http://localhost:*",
                     "http://127.0.0.1:*",
-                    "https://*.seesaw.me.kr"
+                    "https://*.seesaw.me.kr",
+                    "https://seesaw-console.vercel.app"
             ));
             configuration.setAllowedMethods(Arrays.asList(
                     HttpMethod.GET.name(),
