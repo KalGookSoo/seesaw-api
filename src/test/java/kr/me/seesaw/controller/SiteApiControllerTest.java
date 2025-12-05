@@ -112,7 +112,7 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("도메인으로 컨텍스트 조회 - 공개 API 2xx")
     void getSiteContext() throws Exception {
-        Mockito.when(siteService.getSiteContext("example.com")).thenReturn(Mockito.mock(SiteModel.class));
+        Mockito.when(siteService.getSiteByDomainName("example.com")).thenReturn(Mockito.mock(SiteModel.class));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/sites/by-domain/{domain}", "example.com"))
                 .andDo(MockMvcResultHandlers.print())
