@@ -8,6 +8,8 @@ spring:
   application:
     name: seesaw-api
     version: 0.0.1-SNAPSHOT
+  pid:
+    file: ${spring.application.name}.pid
 
   banner:
     location: classpath:banner.txt
