@@ -1,5 +1,8 @@
 package kr.me.seesaw.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
 import kr.me.seesaw.core.authentication.SecurityPrincipalProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -42,8 +46,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, RequestMappingHandlerMapping requestMappingHandlerMapping) {
-        return new JwtAuthenticationFilter(jwtTokenProvider, requestMappingHandlerMapping);
+    public ObjectMapper objectMapper() {
+        return Jackson2ObjectMapperBuilder
+                .json()
+                .modules(new JavaTimeModule())
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, RequestMappingHandlerMapping requestMappingHandlerMapping, ObjectMapper objectMapper) {
+        return new JwtAuthenticationFilter(jwtTokenProvider, requestMappingHandlerMapping, objectMapper);
     }
 
     @Bean
