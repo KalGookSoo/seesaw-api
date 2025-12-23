@@ -2,6 +2,7 @@ package kr.me.seesaw.controller;
 
 import jakarta.validation.Valid;
 import kr.me.seesaw.command.CreateCategoryCommand;
+import kr.me.seesaw.command.MoveCategoryCommand;
 import kr.me.seesaw.command.UpdateCategoryCommand;
 import kr.me.seesaw.model.CategoryModel;
 import kr.me.seesaw.service.CategoryService;
@@ -41,7 +42,14 @@ public class CategoryApiController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, CategoryModel>> updateCategory(@PathVariable("id") String id, @Valid @RequestBody UpdateCategoryCommand command) {
-        CategoryModel model = categoryService.update(id, command);
+        CategoryModel model = categoryService.updateCategory(id, command);
+        return ResponseEntity.ok(Map.of("category", model));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PutMapping("/{id}/move")
+    public ResponseEntity<Map<String, CategoryModel>> moveCategory(@PathVariable("id") String id, @Valid @RequestBody MoveCategoryCommand command) {
+        CategoryModel model = categoryService.moveCategory(id, command);
         return ResponseEntity.ok(Map.of("category", model));
     }
 
