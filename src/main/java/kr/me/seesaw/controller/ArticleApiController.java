@@ -4,8 +4,15 @@ import jakarta.validation.Valid;
 import kr.me.seesaw.command.CreateArticleCommand;
 import kr.me.seesaw.command.UpdateArticleCommand;
 import kr.me.seesaw.message.CmsMessageSource;
+import kr.me.seesaw.model.ArticleModel;
+import kr.me.seesaw.search.ArticleSearch;
 import kr.me.seesaw.service.ArticleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +29,15 @@ public class ArticleApiController {
 
     private final ArticleService articleService;
 
+    @GetMapping
+    public ResponseEntity<PagedModel<ArticleModel>> getArticles(
+            @PageableDefault(size = 8, sort = "article.createdDate", direction = Sort.Direction.DESC) Pageable pageable,
+            @ModelAttribute("search") ArticleSearch search
+    ) {
+        Page<ArticleModel> page = articleService.findAll(pageable, search);
+        return ResponseEntity.ok(new PagedModel<>(page));
+    }
+
     @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or hasPermission(#command.categoryId, 'kr.me.seesaw.domain.Category', T(kr.me.seesaw.domain.vo.BasePermission).CREATE))")
     @PostMapping
     public ResponseEntity<String> create(@Valid CreateArticleCommand command) throws IOException {
@@ -32,7 +48,7 @@ public class ArticleApiController {
 
     @PreAuthorize("@defaultArticleService.isOwner(#id, authentication.name)")
     @PostMapping("/{id}")
-    public ResponseEntity<String> update(@PathVariable("id") String id, @Valid UpdateArticleCommand command) throws IOException {
+    public ResponseEntity<String> update(@PathVariable String id, @Valid UpdateArticleCommand command) throws IOException {
         articleService.update(id, command);
         String message = messageSource.getMessage("command.success.update");
         return ResponseEntity.ok(message);
