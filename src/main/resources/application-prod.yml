@@ -1,0 +1,39 @@
+server:
+  port: 9000
+
+spring:
+  # DataSource
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://10.0.0.69:5432/seesaw
+    username: seesaw_admin
+    password: 1234
+
+  # JPA
+  jpa:
+    properties:
+      hibernate:
+        highlight_sql: true
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+# Logging
+logging:
+  level:
+    root: info
+    org:
+      springframework:
+        web: info
+        security: info
+        orm:
+          jpa: info
+      hibernate:
+        sql: info
+        orm:
+          jdbc:
+            bind: info
+
+jwt:
+  secret:
+    key: "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()"
