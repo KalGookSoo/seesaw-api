@@ -106,7 +106,7 @@ logging:
         orm:
           jpa: info
       hibernate:
-        sql: debug
+        sql: info
         orm:
           jdbc:
             bind: trace
