@@ -1,5 +1,6 @@
 package kr.me.seesaw.service;
 
+import kr.me.seesaw.command.SavePermissionCommand;
 import kr.me.seesaw.domain.Permission;
 import kr.me.seesaw.model.PermissionModel;
 import kr.me.seesaw.repository.PermissionRepository;
@@ -22,6 +23,18 @@ public class DefaultPermissionService implements PermissionService {
         return permissions.stream()
                 .map(PermissionModel::new)
                 .toList();
+    }
+
+    @Override
+    public PermissionModel saveCategoryPermission(SavePermissionCommand command) {
+        Permission permission = permissionRepository.findByRoleIdAndTargetId(command.getRoleId(), command.getTargetId())
+                .map(existingPermissions -> {
+                    existingPermissions.update(command.getTargetId(), command.getRoleId(), command.getMask());
+                    return existingPermissions;
+                })
+                .orElseGet(() -> Permission.create(command.getTargetId(), command.getRoleId(), command.getMask()));
+        Permission savedPermission = permissionRepository.save(permission);
+        return new PermissionModel(savedPermission);
     }
 
 }

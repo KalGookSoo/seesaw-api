@@ -1,13 +1,12 @@
 package kr.me.seesaw.controller;
 
+import jakarta.validation.Valid;
+import kr.me.seesaw.command.SavePermissionCommand;
 import kr.me.seesaw.model.PermissionModel;
 import kr.me.seesaw.service.PermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -23,6 +22,12 @@ public class PermissionApiController {
     public ResponseEntity<Map<String, List<PermissionModel>>> getPermissionsByTargetId(@RequestParam("targetId") String targetId) {
         List<PermissionModel> permissions = permissionService.getPermissionsByTargetId(targetId);
         return ResponseEntity.ok(Map.of("permissions", permissions));
+    }
+
+    @PostMapping("/categories")
+    public ResponseEntity<Map<String, PermissionModel>> savePermission(@Valid @RequestBody SavePermissionCommand command) {
+        PermissionModel permission = permissionService.saveCategoryPermission(command);
+        return ResponseEntity.ok(Map.of("permission", permission));
     }
 
 }
