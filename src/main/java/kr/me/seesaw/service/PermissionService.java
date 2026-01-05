@@ -9,6 +9,6 @@ public interface PermissionService {
 
     List<PermissionModel> getPermissionsByTargetId(String targetId);
 
-    PermissionModel saveCategoryPermission(SavePermissionCommand command);
+    PermissionModel savePermission(SavePermissionCommand command);
 
 }

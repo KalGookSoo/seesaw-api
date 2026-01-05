@@ -26,7 +26,7 @@ public class DefaultPermissionService implements PermissionService {
     }
 
     @Override
-    public PermissionModel saveCategoryPermission(SavePermissionCommand command) {
+    public PermissionModel savePermission(SavePermissionCommand command) {
         Permission permission = permissionRepository.findByRoleIdAndTargetId(command.getRoleId(), command.getTargetId())
                 .map(existingPermissions -> {
                     existingPermissions.update(command.getTargetId(), command.getRoleId(), command.getMask());

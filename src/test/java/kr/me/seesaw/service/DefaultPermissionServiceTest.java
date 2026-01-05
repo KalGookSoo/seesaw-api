@@ -70,7 +70,7 @@ class DefaultPermissionServiceTest {
         command.setMask(7); // Read, Write, Create
 
         // when
-        PermissionModel result = permissionService.saveCategoryPermission(command);
+        PermissionModel result = permissionService.savePermission(command);
 
         // then
         assertThat(result.getTargetId()).isEqualTo(category.getId());
@@ -95,7 +95,7 @@ class DefaultPermissionServiceTest {
         command.setMask(1); // 기존 15(R+W+C+D)에서 1(R)로 수정
 
         // when
-        PermissionModel result = permissionService.saveCategoryPermission(command);
+        PermissionModel result = permissionService.savePermission(command);
 
         // then
         assertThat(result.getTargetId()).isEqualTo(category.getId());

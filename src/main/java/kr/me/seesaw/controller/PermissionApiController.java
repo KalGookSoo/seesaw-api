@@ -24,9 +24,9 @@ public class PermissionApiController {
         return ResponseEntity.ok(Map.of("permissions", permissions));
     }
 
-    @PostMapping("/categories")
+    @PostMapping
     public ResponseEntity<Map<String, PermissionModel>> savePermission(@Valid @RequestBody SavePermissionCommand command) {
-        PermissionModel permission = permissionService.saveCategoryPermission(command);
+        PermissionModel permission = permissionService.savePermission(command);
         return ResponseEntity.ok(Map.of("permission", permission));
     }
 
