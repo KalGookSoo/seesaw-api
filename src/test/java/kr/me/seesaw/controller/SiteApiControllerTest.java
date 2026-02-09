@@ -14,7 +14,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
@@ -26,7 +27,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -41,12 +41,12 @@ class SiteApiControllerTest {
     @MockitoBean
     private SiteService siteService;
 
+    @MockitoBean
+    private PrincipalProvider principalProvider;
+
     public SiteApiControllerTest(MockMvc mockMvc) {
         this.mockMvc = mockMvc;
     }
-
-    @MockitoBean
-    private PrincipalProvider principalProvider;
 
     @BeforeEach
     void setup() {
@@ -57,8 +57,7 @@ class SiteApiControllerTest {
     void getOwnSites() throws Exception {
         List<SiteModel> sites = Collections.singletonList(Mockito.mock(SiteModel.class));
 
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_ADMIN");
-        Set<SimpleGrantedAuthority> authorities = Collections.singleton(authority);
+        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_ADMIN");
         AnonymousAuthenticationToken token = new AnonymousAuthenticationToken("admin", User.withUsername("admin"), authorities);
         Mockito.when(principalProvider.getAuthentication()).thenReturn(token);
         Mockito.when(siteService.getOwnSites(anyString())).thenReturn(sites);
