@@ -29,10 +29,18 @@ public class DefaultPermissionService implements PermissionService {
     public PermissionModel savePermission(SavePermissionCommand command) {
         Permission permission = permissionRepository.findByRoleIdAndTargetId(command.getRoleId(), command.getTargetId())
                 .map(existingPermissions -> {
-                    existingPermissions.update(command.getTargetId(), command.getRoleId(), command.getMask());
+                    existingPermissions.setTargetId(command.getTargetId());
+                    existingPermissions.setRoleId(command.getRoleId());
+                    existingPermissions.setMask(command.getMask());
                     return existingPermissions;
                 })
-                .orElseGet(() -> Permission.create(command.getTargetId(), command.getRoleId(), command.getMask()));
+                .orElseGet(() -> {
+                    Permission newPermission = new Permission();
+                    newPermission.setTargetId(command.getTargetId());
+                    newPermission.setRoleId(command.getRoleId());
+                    newPermission.setMask(command.getMask());
+                    return newPermission;
+                });
         Permission savedPermission = permissionRepository.save(permission);
         return new PermissionModel(savedPermission);
     }

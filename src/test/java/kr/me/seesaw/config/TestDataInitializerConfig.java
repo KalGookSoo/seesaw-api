@@ -118,7 +118,9 @@ public class TestDataInitializerConfig {
                 .stream()
                 .findFirst()
                 .orElseGet(() -> {
-                    Role role = Role.create(name, alias);
+                    Role role = new Role();
+                    role.setName(name);
+                    role.setAlias(alias);
                     entityManager.persist(role);
                     return role;
                 });
@@ -141,8 +143,17 @@ public class TestDataInitializerConfig {
                 .stream()
                 .findFirst()
                 .orElseGet(() -> {
-                    Site site = Site.create(name, domain, description, distributionCode, searchEngineExposed, imageExposed,
-                            tags, null, contactNumber, intro, content);
+                    Site site = new Site();
+                    site.setName(name);
+                    site.setDomainName(domain);
+                    site.setDescription(description);
+                    site.setDistributionCode(distributionCode);
+                    site.setSearchEngineExposed(searchEngineExposed);
+                    site.setImageExposed(imageExposed);
+                    site.setTags(tags);
+                    site.setContactNumber(contactNumber);
+                    site.setIntro(intro);
+                    site.setContent(content);
                     entityManager.persist(site);
                     return site;
                 });
@@ -157,7 +168,13 @@ public class TestDataInitializerConfig {
                 .orElseGet(() -> {
                     String[] parts = email.split("@", 2);
                     Email em = new Email(parts[0], parts.length > 1 ? parts[1] : "test.local");
-                    User u = User.create(username, "pass1234!", name, em, "010-0000-0000");
+                    User u = new User();
+                    u.setUsername(username);
+                    u.setPassword("pass1234!");
+                    u.setName(name);
+                    u.setEmail(em);
+                    u.setContactNumber("010-0000-0000");
+                    u.initializeAccountPolicy();
                     entityManager.persist(u);
                     return u;
                 });
@@ -167,7 +184,10 @@ public class TestDataInitializerConfig {
         boolean exists = user.getRoleMappings().stream()
                 .anyMatch(rm -> role.equals(rm.getRole()) && site.equals(rm.getSite()));
         if (!exists) {
-            RoleMapping rm = RoleMapping.create(role, user, site);
+            RoleMapping rm = new RoleMapping();
+            rm.setRole(role);
+            rm.setUser(user);
+            rm.setSite(site);
             user.addRole(rm); // cascade로 RoleMapping 저장
             entityManager.merge(user);
         }
@@ -181,17 +201,19 @@ public class TestDataInitializerConfig {
                 .stream()
                 .findFirst()
                 .orElseGet(() -> {
-                    CreateCategoryCommand cmd = CreateCategoryCommand.builder()
-                            .name(name)
-                            .description(desc)
-                            .type(CategoryType.NONE)
-                            .siteExposed(true)
-                            .siteExposedOrder(siteExposedOrder)
-                            .exposed(true)
-                            .sequence(sequence)
-                            .siteId(siteId)
-                            .build();
-                    Category category = Category.create(cmd);
+                    Category category = new Category();
+                    category.setName(name);
+                    category.setDescription(desc);
+                    category.setType(CategoryType.NONE);
+                    category.setSiteExposed(true);
+                    category.setSiteExposedOrder(siteExposedOrder);
+                    category.setExposed(true);
+                    category.setSequence(sequence);
+                    
+                    Site site = new Site();
+                    site.setId(siteId);
+                    category.setSite(site);
+
                     entityManager.persist(category);
                     return category;
                 });
@@ -204,7 +226,10 @@ public class TestDataInitializerConfig {
                 .getSingleResult();
 
         if (count == 0) {
-            Permission permission = Permission.create(targetId, roleId, mask);
+            Permission permission = new Permission();
+            permission.setTargetId(targetId);
+            permission.setRoleId(roleId);
+            permission.setMask(mask);
             entityManager.persist(permission);
         }
     }
@@ -216,14 +241,16 @@ public class TestDataInitializerConfig {
                 .stream()
                 .findFirst()
                 .orElseGet(() -> {
-                    CreateArticleCommand cmd = new CreateArticleCommand();
-                    cmd.setCategoryId(categoryId);
-                    cmd.setType(ArticleType.HTML);
-                    cmd.setFixed(false);
-                    cmd.setFixedOrder(0);
-                    cmd.setTitle(title);
-                    cmd.setContent(content);
-                    Article article = Article.create(cmd);
+                    Article article = new Article();
+                    Category category = new Category();
+                    category.setId(categoryId);
+                    article.setCategory(category);
+                    article.setType(ArticleType.HTML);
+                    article.setFixed(false);
+                    article.setFixedOrder(0);
+                    article.setTitle(title);
+                    article.setContent(content);
+
                     entityManager.persist(article);
                     return article;
                 });
@@ -235,11 +262,12 @@ public class TestDataInitializerConfig {
                 .getSingleResult();
 
         if (count == 0) {
-            CreateReplyCommand cmd = new CreateReplyCommand();
-            cmd.setArticleId(articleId);
-            cmd.setContent(content);
-            cmd.setExposed(true);
-            Reply reply = Reply.create(cmd);
+            Reply reply = new Reply();
+            Article article = new Article();
+            article.setId(articleId);
+            reply.setArticle(article);
+            reply.setContent(content);
+            reply.setExposed(true);
             entityManager.persist(reply);
         }
     }
@@ -250,7 +278,10 @@ public class TestDataInitializerConfig {
                 .getSingleResult();
 
         if (count == 0) {
-            View view = View.create(articleId);
+            View view = new View();
+            Article article = new Article();
+            article.setId(articleId);
+            view.setArticle(article);
             entityManager.persist(view);
         }
     }
