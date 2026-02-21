@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final JwtTokenProvider jwtTokenProvider;
 
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
@@ -46,9 +50,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7); // "Bearer " 이후의 토큰 추출
             try {
+                logger.debug("JWT 인증 시도: token={}", token);
                 Authentication authentication = jwtTokenProvider.validateTokenAndGetAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.debug("JWT 인증 성공: principal={}", authentication.getName());
             } catch (AuthenticationException e) {
+                logger.warn("JWT 인증 실패: {}", e.getMessage());
                 SecurityContextHolder.clearContext();
                 if (!response.isCommitted()) {
                     response.setCharacterEncoding(StandardCharsets.UTF_8.name());

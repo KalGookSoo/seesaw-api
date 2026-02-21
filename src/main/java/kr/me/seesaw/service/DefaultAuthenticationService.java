@@ -12,6 +12,8 @@ import kr.me.seesaw.repository.RoleRepository;
 import kr.me.seesaw.repository.UserRepository;
 import kr.me.seesaw.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DefaultAuthenticationService implements AuthenticationService {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserRepository userRepository;
 
@@ -46,6 +50,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
     @Transactional(readOnly = true)
     @Override
     public JsonWebToken authenticate(SignInCommand command) {
+        logger.info("사용자 인증 요청: username={}", command.getUsername());
         // 사용자 조회
         User user = userRepository.findByUsername(command.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
@@ -82,6 +87,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
     @Transactional(readOnly = true)
     @Override
     public JsonWebToken refreshToken(String refreshToken) {
+        logger.info("토큰 재발급 요청");
         String username = jwtTokenProvider.validateRefreshToken(refreshToken);
         UserPrincipal userPrincipal = loadUserPrincipal(username);
         return jwtTokenProvider.generateTokenInfo(userPrincipal);
@@ -94,6 +100,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
      * @return UserPrincipal
      */
     private UserPrincipal loadUserPrincipal(String username) {
+        logger.info("사용자 Principal 로드: username={}", username);
         // 사용자 조회
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
@@ -108,6 +115,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
      * @return UserPrincipal
      */
     private UserPrincipal createUserPrincipal(User user) {
+        logger.info("사용자 Principal 생성: username={}", user.getUsername());
         List<String> roleIds = user.getRoleMappings()
                 .stream()
                 .map(RoleMapping::getRole)
