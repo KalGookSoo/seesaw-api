@@ -11,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/replies")
@@ -24,21 +22,21 @@ public class ReplyApiController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(produces = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> create(@Valid CreateReplyCommand command) throws IOException {
+    public ResponseEntity<String> create(@Valid CreateReplyCommand command) {
         articleService.create(command);
         String message = messageSource.getMessage("command.success.create");
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("@defaultReplyService.isOwner(#id, authentication.name)")
+    @PreAuthorize("@defaultReplyPermissionService.isOwner(#id)")
     @PostMapping(value = "/{id}", produces = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> update(@PathVariable("id") String id, @Valid UpdateReplyCommand command) throws IOException {
+    public ResponseEntity<String> update(@PathVariable("id") String id, @Valid UpdateReplyCommand command) {
         articleService.update(id, command);
         String message = messageSource.getMessage("command.success.update");
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @defaultReplyService.isOwner(#id, authentication.name)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @defaultReplyPermissionService.isOwner(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable String id) {
         articleService.delete(id);
