@@ -7,6 +7,7 @@ import kr.me.seesaw.service.AttachmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -35,8 +37,7 @@ public class AttachmentApiController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Resource> getAttachment(
-            @PathVariable("id") String id,
-            @RequestHeader(HttpHeaders.USER_AGENT) String userAgent
+            @PathVariable("id") String id
     ) throws IOException {
         AttachmentModel attachment = attachmentService.getAttachmentById(id);
         ByteArrayInputStream stream = FileIOService.read(attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName()));
@@ -44,7 +45,10 @@ public class AttachmentApiController {
         String fileName = attachment.getOriginalName();
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, attachment.getMimeType());
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, getContentDisposition(userAgent, fileName));
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                .filename(fileName, StandardCharsets.UTF_8)
+                .build()
+                .toString());
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(resource);
     }
 
@@ -55,14 +59,5 @@ public class AttachmentApiController {
         return ResponseEntity.noContent().build();
     }
 
-    private String getContentDisposition(String userAgent, String fileName) {
-        String disposition = "attachment;filename=";
-        if (userAgent.contains("MSIE")) {
-            int i = userAgent.indexOf('M', 2);
-            String IEV = userAgent.substring(i + 5, i + 8);
-            disposition = IEV.equalsIgnoreCase("5.5") ? "filename=" : disposition;
-        }
-        return disposition + fileName;
-    }
 
 }
