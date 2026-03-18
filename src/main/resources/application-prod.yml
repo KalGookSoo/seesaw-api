@@ -34,6 +34,11 @@ logging:
           jdbc:
             bind: info
 
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false
+
 jwt:
   secret:
     key: "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()"
