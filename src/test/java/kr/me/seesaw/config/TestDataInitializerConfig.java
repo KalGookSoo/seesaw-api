@@ -210,8 +210,7 @@ public class TestDataInitializerConfig {
                     category.setExposed(true);
                     category.setSequence(sequence);
                     
-                    Site site = new Site();
-                    site.setId(siteId);
+                    Site site = entityManager.getReference(Site.class, siteId);
                     category.setSite(site);
 
                     entityManager.persist(category);
@@ -242,8 +241,7 @@ public class TestDataInitializerConfig {
                 .findFirst()
                 .orElseGet(() -> {
                     Article article = new Article();
-                    Category category = new Category();
-                    category.setId(categoryId);
+                    Category category = entityManager.getReference(Category.class, categoryId);
                     article.setCategory(category);
                     article.setType(ArticleType.HTML);
                     article.setFixed(false);
@@ -263,8 +261,7 @@ public class TestDataInitializerConfig {
 
         if (count == 0) {
             Reply reply = new Reply();
-            Article article = new Article();
-            article.setId(articleId);
+            Article article = entityManager.getReference(Article.class, articleId);
             reply.setArticle(article);
             reply.setContent(content);
             reply.setExposed(true);
@@ -279,8 +276,7 @@ public class TestDataInitializerConfig {
 
         if (count == 0) {
             View view = new View();
-            Article article = new Article();
-            article.setId(articleId);
+            Article article = entityManager.getReference(Article.class, articleId);
             view.setArticle(article);
             entityManager.persist(view);
         }

@@ -38,7 +38,7 @@ public class ArticleApiController {
         return ResponseEntity.ok(new PagedModel<>(page));
     }
 
-    @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or hasPermission(#command.categoryId, 'kr.me.seesaw.domain.Category', T(kr.me.seesaw.domain.vo.BasePermission).CREATE))")
+    @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or hasPermission(#command.categoryId, 'kr.me.seesaw.domain.Category', T(org.springframework.security.acls.domain.BasePermission).CREATE))")
     @PostMapping
     public ResponseEntity<String> create(@Valid CreateArticleCommand command) throws IOException {
         articleService.create(command);
