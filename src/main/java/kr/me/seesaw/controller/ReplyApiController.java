@@ -28,7 +28,7 @@ public class ReplyApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("@defaultReplyPermissionService.isOwner(#id)")
+    @PreAuthorize("@replyPermissionService.isOwner(#id)")
     @PostMapping(value = "/{id}", produces = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> update(@PathVariable("id") String id, @Valid UpdateReplyCommand command) {
         articleService.update(id, command);
@@ -36,7 +36,7 @@ public class ReplyApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @defaultReplyPermissionService.isOwner(#id)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @replyPermissionService.isOwner(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable String id) {
         articleService.delete(id);
