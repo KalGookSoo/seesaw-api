@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import kr.me.seesaw.command.CreateSiteCommand;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
+import kr.me.seesaw.domain.vo.RoleName;
 import kr.me.seesaw.model.SiteModel;
 import kr.me.seesaw.service.SiteService;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +58,7 @@ class SiteApiControllerTest {
     void getOwnSites() throws Exception {
         List<SiteModel> sites = Collections.singletonList(Mockito.mock(SiteModel.class));
 
-        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_ADMIN");
+        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(RoleName.ROLE_ADMIN.name());
         AnonymousAuthenticationToken token = new AnonymousAuthenticationToken("admin", User.withUsername("admin"), authorities);
         Mockito.when(principalProvider.getAuthentication()).thenReturn(token);
         Mockito.when(siteService.getOwnSites(anyString())).thenReturn(sites);
