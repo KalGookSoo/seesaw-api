@@ -3,8 +3,10 @@ package kr.me.seesaw.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import kr.me.seesaw.core.authentication.IpAddressExtractor;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
 import kr.me.seesaw.core.authentication.SecurityPrincipalProvider;
+import kr.me.seesaw.core.authentication.ServletIpAddressExtractor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,6 +45,11 @@ public class SecurityConfig {
     @Bean
     public PrincipalProvider principalProvider() {
         return new SecurityPrincipalProvider();
+    }
+
+    @Bean
+    public IpAddressExtractor ipAddressExtractor() {
+        return new ServletIpAddressExtractor();
     }
 
     @Bean

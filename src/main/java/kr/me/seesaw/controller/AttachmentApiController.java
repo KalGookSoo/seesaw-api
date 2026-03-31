@@ -1,6 +1,6 @@
 package kr.me.seesaw.controller;
 
-import kr.me.seesaw.core.file.FileIOService;
+import kr.me.seesaw.core.file.FileManager;
 import kr.me.seesaw.model.AttachmentModel;
 import kr.me.seesaw.service.AttachmentQueryService;
 import kr.me.seesaw.service.AttachmentService;
@@ -29,6 +29,8 @@ public class AttachmentApiController {
 
     private final AttachmentQueryService attachmentQueryService;
 
+    private final FileManager fileManager;
+
     @GetMapping
     public ResponseEntity<Map<String, List<AttachmentModel>>> getAttachments(@RequestParam("referenceId") String referenceId) {
         List<AttachmentModel> attachments = attachmentQueryService.getAttachments(referenceId);
@@ -40,7 +42,7 @@ public class AttachmentApiController {
             @PathVariable("id") String id
     ) throws IOException {
         AttachmentModel attachment = attachmentService.getAttachmentById(id);
-        ByteArrayInputStream stream = FileIOService.read(attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName()));
+        ByteArrayInputStream stream = fileManager.read(attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName()));
         InputStreamResource resource = new InputStreamResource(stream);
         String fileName = attachment.getOriginalName();
         HttpHeaders headers = new HttpHeaders();
@@ -58,6 +60,5 @@ public class AttachmentApiController {
         attachmentService.deleteAttachment(id);
         return ResponseEntity.noContent().build();
     }
-
 
 }
