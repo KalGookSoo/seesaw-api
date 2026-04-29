@@ -3,6 +3,8 @@ package kr.me.seesaw.controller;
 import jakarta.validation.Valid;
 import kr.me.seesaw.command.CreateArticleCommand;
 import kr.me.seesaw.command.UpdateArticleCommand;
+import kr.me.seesaw.context.ArticleContext;
+import kr.me.seesaw.context.ArticlePermissionContext;
 import kr.me.seesaw.message.CmsMessageSource;
 import kr.me.seesaw.model.ArticleModel;
 import kr.me.seesaw.search.ArticleSearch;
@@ -27,6 +29,7 @@ public class ArticleApiController {
 
     private final CmsMessageSource messageSource;
 
+    private final ArticleContext articleContext;
     private final ArticleService articleService;
 
     @GetMapping
@@ -34,7 +37,7 @@ public class ArticleApiController {
             @PageableDefault(size = 8, sort = "article.createdDate", direction = Sort.Direction.DESC) Pageable pageable,
             @ModelAttribute("search") ArticleSearch search
     ) {
-        Page<ArticleModel> page = articleService.findAll(pageable, search);
+        Page<ArticleModel> page = articleContext.findAll(pageable, search);
         return ResponseEntity.ok(new PagedModel<>(page));
     }
 
@@ -46,7 +49,7 @@ public class ArticleApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("@defaultArticleService.isOwner(#id, authentication.name)")
+    @PreAuthorize("@articlePermissionContext.isOwner(#id, authentication.name)")
     @PostMapping("/{id}")
     public ResponseEntity<String> update(@PathVariable String id, @Valid UpdateArticleCommand command) throws IOException {
         articleService.update(id, command);
@@ -54,7 +57,7 @@ public class ArticleApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @defaultArticleService.isOwner(#id, authentication.name)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @articlePermissionContext.isOwner(#id, authentication.name)")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable String id) {
         articleService.delete(id);
