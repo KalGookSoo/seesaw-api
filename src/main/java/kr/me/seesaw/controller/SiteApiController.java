@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,37 +25,37 @@ public class SiteApiController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping
-    public ResponseEntity<Map<String, List<SiteModel>>> getOwnSites() {
+    public ResponseEntity<List<SiteModel>> getOwnSites() {
         String username = principalProvider.getAuthentication().getName();
         List<SiteModel> sites = siteService.getOwnSites(username);
-        return ResponseEntity.ok(Map.of("sites", sites));
+        return ResponseEntity.ok(sites);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PostMapping
-    public ResponseEntity<Map<String, SiteModel>> createSite(@RequestBody @Valid CreateSiteCommand command) throws IOException {
+    public ResponseEntity<SiteModel> createSite(@Valid CreateSiteCommand command) throws IOException {
         SiteModel site = siteService.createSite(command);
-        return ResponseEntity.ok(Map.of("site", site));
+        return ResponseEntity.ok(site);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, SiteModel>> getSiteById(@PathVariable String id) {
+    public ResponseEntity<SiteModel> getSiteById(@PathVariable String id) {
         SiteModel site = siteService.getSiteById(id);
-        return ResponseEntity.ok(Map.of("site", site));
+        return ResponseEntity.ok(site);
     }
 
     @GetMapping("/by-domain/{domainName}")
-    public ResponseEntity<Map<String, SiteModel>> getSiteContext(@PathVariable("domainName") String domainName) {
+    public ResponseEntity<SiteModel> getSiteContext(@PathVariable("domainName") String domainName) {
         SiteModel site = siteService.getSiteByDomainName(domainName);
-        return ResponseEntity.ok(Map.of("site", site));
+        return ResponseEntity.ok(site);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @PutMapping("/{id}")
-    public ResponseEntity<Map<String, SiteModel>> updateSite(@PathVariable String id, @RequestBody @Valid CreateSiteCommand command) throws IOException {
+    @PostMapping("/{id}")
+    public ResponseEntity<SiteModel> updateSite(@PathVariable String id, @Valid CreateSiteCommand command) throws IOException {
         SiteModel site = siteService.updateSite(id, command);
-        return ResponseEntity.ok(Map.of("site", site));
+        return ResponseEntity.ok(site);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
