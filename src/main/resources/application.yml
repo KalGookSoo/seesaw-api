@@ -121,6 +121,9 @@ kr:
   me:
     seesaw:
       filepath: ${user.home}/attachments
+      cors-allowed-origins:
+        - "http://localhost:*"
+        - "http://127.0.0.1:*"
 
 # Swagger/OpenAPI
 springdoc:

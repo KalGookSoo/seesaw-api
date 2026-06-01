@@ -42,3 +42,10 @@ decorator:
 jwt:
   secret:
     key: "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()"
+
+kr:
+  me:
+    seesaw:
+      cors-allowed-origins:
+        - "https://*.seesaw.me.kr"
+        - "https://seesaw-console.vercel.app"

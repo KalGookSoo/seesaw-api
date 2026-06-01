@@ -3,10 +3,12 @@ package kr.me.seesaw.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import kr.me.seesaw.config.SeesawProperties;
 import kr.me.seesaw.core.authentication.IpAddressExtractor;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
 import kr.me.seesaw.core.authentication.SecurityPrincipalProvider;
 import kr.me.seesaw.core.authentication.ServletIpAddressExtractor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +37,10 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final SeesawProperties seesawProperties;
 
     @Bean
     public JwtTokenProvider jwtTokenProvider(@Value("${jwt.secret.key}") String secretKey) {
@@ -87,12 +92,7 @@ public class SecurityConfig {
     private void handleCorsPolicies(CorsConfigurer<HttpSecurity> config) {
         config.configurationSource(request -> {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOriginPatterns(Arrays.asList(
-                    "http://localhost:*",
-                    "http://127.0.0.1:*",
-                    "https://*.seesaw.me.kr",
-                    "https://seesaw-console.vercel.app"
-            ));
+            configuration.setAllowedOriginPatterns(seesawProperties.getCorsAllowedOrigins());
             configuration.setAllowedMethods(Arrays.asList(
                     HttpMethod.GET.name(),
                     HttpMethod.POST.name(),
