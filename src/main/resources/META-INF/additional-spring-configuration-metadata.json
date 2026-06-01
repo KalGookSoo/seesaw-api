@@ -12,9 +12,7 @@
       "description": "CORS를 허용할 Origin 목록입니다.",
       "defaultValue": [
         "http://localhost:*",
-        "http://127.0.0.1:*",
-        "https://*.seesaw.me.kr",
-        "https://seesaw-console.vercel.app"
+        "http://127.0.0.1:*"
       ]
     }
   ],
@@ -29,6 +27,32 @@
         {
           "value": "${user.home}/attachments",
           "description": "로컬 개발 기본 경로"
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "kr.me.seesaw.cors-allowed-origins",
+      "values": [
+        {
+          "value": "http://localhost:*",
+          "description": "로컬 개발용 허용 (와일드카드 포트)"
+        },
+        {
+          "value": "http://127.0.0.1:*",
+          "description": "로컬 루프백 주소 허용"
+        },
+        {
+          "value": "https://*.seesaw.me.kr",
+          "description": "운영 환경 공식 도메인"
+        },
+        {
+          "value": "https://seesaw-console.vercel.app",
+          "description": "관리자 콘솔 공식 도메인"
         }
       ],
       "providers": [

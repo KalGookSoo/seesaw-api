@@ -132,3 +132,10 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   packages-to-scan: kr.me.seesaw.controller
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+    import: "optional:configserver:http://localhost:8888"
