@@ -1,10 +1,10 @@
 package kr.me.seesaw.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import kr.me.seesaw.command.CreateSiteCommand;
 import kr.me.seesaw.core.authentication.PrincipalProvider;
 import kr.me.seesaw.domain.vo.RoleName;
+import kr.me.seesaw.exception.GlobalExceptionHandler;
+import kr.me.seesaw.message.CmsMessageSource;
 import kr.me.seesaw.model.SiteModel;
 import kr.me.seesaw.service.SiteService;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -33,6 +34,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
+@Import({GlobalExceptionHandler.class})
 @WebMvcTest(controllers = {SiteApiController.class})
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class SiteApiControllerTest {
@@ -41,6 +43,9 @@ class SiteApiControllerTest {
 
     @MockitoBean
     private SiteService siteService;
+
+    @MockitoBean
+    private CmsMessageSource messageSource;
 
     @MockitoBean
     private PrincipalProvider principalProvider;
@@ -71,29 +76,40 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("사이트 생성 - 유효 요청 본문이면 2xx와 생성된 사이트 반환")
     void createSite() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode body = objectMapper.createObjectNode();
-        body.put("name", "site-name");
-        body.put("domainName", "example.com");
-        body.put("description", "desc");
-        body.put("distributionCode", "code");
-        body.put("searchEngineExposed", true);
-        body.put("imageExposed", true);
-        body.put("tags", "tag1,tag2");
-        ObjectNode address = objectMapper.createObjectNode();
-        address.put("zipcode", "");
-        address.put("value", "");
-        body.set("address", address);
-        body.put("contactNumber", "010-0000-0000");
-        body.put("intro", "intro");
-        body.put("content", "content");
 
-        Mockito.when(siteService.createSite(Mockito.any(CreateSiteCommand.class))).thenReturn(Mockito.mock(SiteModel.class));
+        MockMultipartFile profileImage = new MockMultipartFile(
+                "profileImage",
+                "profile.png",
+                "image/png",
+                "profile image data".getBytes()
+        );
+
+        MockMultipartFile backgroundImage = new MockMultipartFile(
+                "backgroundImage",
+                "background.png",
+                "image/png",
+                "background image data".getBytes()
+        );
+
+        Mockito.when(siteService.createSite(Mockito.any(CreateSiteCommand.class)))
+                .thenReturn(Mockito.mock(SiteModel.class));
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/api/sites")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsBytes(body))
+                        MockMvcRequestBuilders.multipart("/api/sites")
+                                .file(profileImage)
+                                .file(backgroundImage)
+                                .param("name", "site-name")
+                                .param("domainName", "example.com")
+                                .param("description", "desc")
+                                .param("distributionCode", "code")
+                                .param("searchEngineExposed", "true")
+                                .param("imageExposed", "true")
+                                .param("tags", "tag1,tag2")
+                                .param("address.zipcode", "")
+                                .param("address.value", "")
+                                .param("contactNumber", "010-0000-0000")
+                                .param("intro", "intro")
+                                .param("content", "content")
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
@@ -122,29 +138,38 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("사이트 수정 - 유효 요청 본문이면 2xx")
     void updateSite() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode body = objectMapper.createObjectNode();
-        body.put("name", "updated");
-        body.put("domainName", "example.com");
-        body.put("description", "desc");
-        body.put("distributionCode", "code");
-        body.put("searchEngineExposed", true);
-        body.put("imageExposed", true);
-        body.put("tags", "tag1");
-        ObjectNode address = objectMapper.createObjectNode();
-        address.put("zipcode", "");
-        address.put("value", "");
-        body.set("address", address);
-        body.put("contactNumber", "010");
-        body.put("intro", "intro");
-        body.put("content", "content");
+        MockMultipartFile profileImage = new MockMultipartFile(
+                "profileImage",
+                "profile.png",
+                "image/png",
+                "dummy image".getBytes()
+        );
+
+        MockMultipartFile backgroundImage = new MockMultipartFile(
+                "backgroundImage",
+                "background.png",
+                "image/png",
+                "dummy background".getBytes()
+        );
 
         Mockito.when(siteService.updateSite(Mockito.eq("id-1"), Mockito.any(CreateSiteCommand.class))).thenReturn(Mockito.mock(SiteModel.class));
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.put("/api/sites/{id}", "id-1")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsBytes(body))
+                        MockMvcRequestBuilders.multipart("/api/sites/{id}", "id-1")
+                                .file(profileImage)
+                                .file(backgroundImage)
+                                .param("name", "updated")
+                                .param("domainName", "example.com")
+                                .param("description", "desc")
+                                .param("distributionCode", "code")
+                                .param("searchEngineExposed", "true")
+                                .param("imageExposed", "true")
+                                .param("tags", "tag1")
+                                .param("address.zipcode", "12345")
+                                .param("address.value", "대전광역시 어딘가")
+                                .param("contactNumber", "010-1234-5678")
+                                .param("intro", "intro")
+                                .param("content", "content")
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
