@@ -10,7 +10,8 @@ spring:
     version: 0.0.1-SNAPSHOT
   pid:
     file: ${spring.application.name}.pid
-
+  config:
+    import: "optional:configserver:"
   banner:
     location: classpath:banner.txt
   
