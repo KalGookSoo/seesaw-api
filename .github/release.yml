@@ -21,5 +21,4 @@ changelog:
         - documentation
 
     - title: "⚙️ 기타 변경 (Other Changes)"
-      labels:
-        - "*"
+      labels: []
