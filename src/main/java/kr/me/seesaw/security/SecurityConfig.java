@@ -116,7 +116,7 @@ public class SecurityConfig {
     }
 
     private void handleAuthorizeHttpRequests(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry config) {
-        config.requestMatchers(new AntPathRequestMatcher("/favicon.ico")).permitAll()
+        config.requestMatchers(new AntPathRequestMatcher("/favicon.png")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/actuator/info")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/actuator/health")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasRole("ADMIN")
