@@ -1,11 +1,11 @@
 package kr.me.seesaw.service;
 
 import jakarta.persistence.EntityManager;
-import kr.me.seesaw.command.SavePermissionCommand;
-import kr.me.seesaw.config.TestDataInitializerConfig;
+import kr.me.seesaw.request.SavePermissionRequest;
+import kr.me.seesaw.api.framework.config.TestDataInitializerConfig;
 import kr.me.seesaw.domain.Category;
 import kr.me.seesaw.domain.Role;
-import kr.me.seesaw.model.PermissionModel;
+import kr.me.seesaw.response.PermissionResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,7 +44,7 @@ class DefaultPermissionServiceTest {
                 .getSingleResult();
 
         // when
-        List<PermissionModel> permissions = permissionService.getPermissionsByTargetId(category.getId());
+        List<PermissionResponse> permissions = permissionService.getPermissionsByTargetId(category.getId());
 
         // then
         assertThat(permissions).isNotEmpty();
@@ -64,13 +64,13 @@ class DefaultPermissionServiceTest {
 
         // 자유 카테고리에 ROLE_ADMIN 권한은 초기 데이터에 없으므로 신규 생성 케이스
 
-        SavePermissionCommand command = new SavePermissionCommand();
+        SavePermissionRequest command = new SavePermissionRequest();
         command.setTargetId(category.getId());
         command.setRoleId(role.getId());
         command.setMask(7); // Read, Write, Create
 
         // when
-        PermissionModel result = permissionService.savePermission(command);
+        PermissionResponse result = permissionService.savePermission(command);
 
         // then
         assertThat(result.getTargetId()).isEqualTo(category.getId());
@@ -89,13 +89,13 @@ class DefaultPermissionServiceTest {
                 .setParameter("name", "ROLE_ADMIN")
                 .getSingleResult();
 
-        SavePermissionCommand command = new SavePermissionCommand();
+        SavePermissionRequest command = new SavePermissionRequest();
         command.setTargetId(category.getId());
         command.setRoleId(role.getId());
         command.setMask(1); // 기존 15(R+W+C+D)에서 1(R)로 수정
 
         // when
-        PermissionModel result = permissionService.savePermission(command);
+        PermissionResponse result = permissionService.savePermission(command);
 
         // then
         assertThat(result.getTargetId()).isEqualTo(category.getId());
@@ -103,9 +103,9 @@ class DefaultPermissionServiceTest {
         assertThat(result.getMask()).isEqualTo(1);
 
         // 실제 DB(영속성 컨텍스트)에 반영되었는지 재확인
-        List<PermissionModel> permissions = permissionService.getPermissionsByTargetId(category.getId());
+        List<PermissionResponse> permissions = permissionService.getPermissionsByTargetId(category.getId());
         assertThat(permissions).filteredOn(p -> p.getRoleId().equals(role.getId()))
-                .extracting(PermissionModel::getMask)
+                .extracting(PermissionResponse::getMask)
                 .containsExactly(1);
     }
 

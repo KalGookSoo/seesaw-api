@@ -1,6 +1,6 @@
 package kr.me.seesaw.service;
 
-import kr.me.seesaw.config.SeesawProperties;
+import kr.me.seesaw.api.framework.config.SeesawProperties;
 import kr.me.seesaw.domain.Article;
 import kr.me.seesaw.domain.VEvent;
 import kr.me.seesaw.domain.vo.RecurrenceRule;

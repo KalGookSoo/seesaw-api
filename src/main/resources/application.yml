@@ -39,6 +39,7 @@ spring:
   # Lazy initialization
   main:
     lazy-initialization: true
+    allow-bean-definition-overriding: true
   
   # HTML 비표준 HTTP method(ex - PUT, DELETE ..)를 활성화 합니다.
   mvc:

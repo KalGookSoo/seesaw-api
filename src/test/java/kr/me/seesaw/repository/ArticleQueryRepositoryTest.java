@@ -1,7 +1,7 @@
 package kr.me.seesaw.repository;
 
 import kr.me.seesaw.repository.impl.ArticleQueryRepositoryImpl;
-import kr.me.seesaw.search.ArticleSearch;
+import kr.me.seesaw.request.search.SearchArticlesRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ class ArticleQueryRepositoryTest {
     @DisplayName("생성일시 기준 이전 하나 조회")
     void findFirst() {
         // Given
-        ArticleSearch search = new ArticleSearch();
+        SearchArticlesRequest search = new SearchArticlesRequest();
         search.setCategoryId("");
         search.setKeyWord("");
         search.setKeyField("");
@@ -54,7 +54,7 @@ class ArticleQueryRepositoryTest {
     @DisplayName("생성일시 기준 다음 하나 조회")
     void findFirstAsc() {
         // Given
-        ArticleSearch search = new ArticleSearch();
+        SearchArticlesRequest search = new SearchArticlesRequest();
         search.setCategoryId("");
         search.setKeyWord("");
         search.setKeyField("");

@@ -1,4 +1,4 @@
-package kr.me.seesaw.security;
+package kr.me.seesaw.api.framework.security;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,6 +1,6 @@
-package kr.me.seesaw.controller;
+package kr.me.seesaw.api.framework.controller;
 
-import kr.me.seesaw.config.TestDataInitializerConfig;
+import kr.me.seesaw.api.framework.config.TestDataInitializerConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

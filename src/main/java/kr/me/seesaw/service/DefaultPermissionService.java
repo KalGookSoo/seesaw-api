@@ -1,8 +1,8 @@
 package kr.me.seesaw.service;
 
-import kr.me.seesaw.command.SavePermissionCommand;
+import kr.me.seesaw.request.SavePermissionRequest;
 import kr.me.seesaw.domain.Permission;
-import kr.me.seesaw.model.PermissionModel;
+import kr.me.seesaw.response.PermissionResponse;
 import kr.me.seesaw.repository.PermissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,16 +22,16 @@ public class DefaultPermissionService implements PermissionService {
     private final PermissionRepository permissionRepository;
 
     @Override
-    public List<PermissionModel> getPermissionsByTargetId(String targetId) {
+    public List<PermissionResponse> getPermissionsByTargetId(String targetId) {
         logger.debug("대상별 권한 목록 조회: targetId={}", targetId);
         List<Permission> permissions = permissionRepository.findAllByTargetId(targetId);
         return permissions.stream()
-                .map(PermissionModel::new)
+                .map(PermissionResponse::new)
                 .toList();
     }
 
     @Override
-    public PermissionModel savePermission(SavePermissionCommand command) {
+    public PermissionResponse savePermission(SavePermissionRequest command) {
         logger.info("권한 저장: command={}", command);
         Permission permission = permissionRepository.findByRoleIdAndTargetId(command.getRoleId(), command.getTargetId())
                 .map(existingPermissions -> {
@@ -48,7 +48,7 @@ public class DefaultPermissionService implements PermissionService {
                     return newPermission;
                 });
         Permission savedPermission = permissionRepository.save(permission);
-        return new PermissionModel(savedPermission);
+        return new PermissionResponse(savedPermission);
     }
 
 }

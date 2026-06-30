@@ -1,7 +1,7 @@
-package kr.me.seesaw.controller;
+package kr.me.seesaw.api.framework.controller;
 
 import jakarta.persistence.EntityManager;
-import kr.me.seesaw.config.TestDataInitializerConfig;
+import kr.me.seesaw.api.framework.config.TestDataInitializerConfig;
 import kr.me.seesaw.domain.Category;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,16 +1,16 @@
 package kr.me.seesaw.service;
 
-import kr.me.seesaw.command.SignInCommand;
+import kr.me.seesaw.request.SignInRequest;
 import kr.me.seesaw.domain.Role;
 import kr.me.seesaw.domain.RoleMapping;
 import kr.me.seesaw.domain.User;
-import kr.me.seesaw.model.JsonWebToken;
-import kr.me.seesaw.model.RoleModel;
-import kr.me.seesaw.model.UserModel;
-import kr.me.seesaw.model.UserPrincipal;
+import kr.me.seesaw.response.JsonWebToken;
+import kr.me.seesaw.response.RoleResponse;
+import kr.me.seesaw.response.UserResponse;
+import kr.me.seesaw.response.UserPrincipal;
 import kr.me.seesaw.repository.RoleRepository;
 import kr.me.seesaw.repository.UserRepository;
-import kr.me.seesaw.security.JwtTokenProvider;
+import kr.me.seesaw.api.framework.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
      */
     @Transactional(readOnly = true)
     @Override
-    public JsonWebToken authenticate(SignInCommand command) {
+    public JsonWebToken authenticate(SignInRequest command) {
         logger.info("사용자 인증 요청: username={}", command.getUsername());
         // 사용자 조회
         User user = userRepository.findByUsername(command.getUsername())
@@ -122,11 +122,11 @@ public class DefaultAuthenticationService implements AuthenticationService {
                 .map(Role::getId)
                 .toList();
         List<Role> roles = roleRepository.findAllByIdIn(roleIds);
-        Set<RoleModel> roleModels = roles.stream()
-                .map(RoleModel::new)
+        Set<RoleResponse> roleModels = roles.stream()
+                .map(RoleResponse::new)
                 .collect(Collectors.toSet());
 
-        UserModel userModel = new UserModel(user);
+        UserResponse userModel = new UserResponse(user);
         roleModels.forEach(userModel::addRole);
 
         return new UserPrincipal(userModel);

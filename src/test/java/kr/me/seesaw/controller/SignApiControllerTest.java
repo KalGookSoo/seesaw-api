@@ -1,9 +1,9 @@
-package kr.me.seesaw.controller;
+package kr.me.seesaw.api.framework.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.me.seesaw.command.SignInCommand;
-import kr.me.seesaw.command.TokenRefreshCommand;
-import kr.me.seesaw.model.JsonWebToken;
+import kr.me.seesaw.request.SignInRequest;
+import kr.me.seesaw.request.TokenRefreshRequest;
+import kr.me.seesaw.response.JsonWebToken;
 import kr.me.seesaw.service.AuthenticationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,11 +46,11 @@ class SignApiControllerTest {
     @DisplayName("계정 인증 요청 성공 시 200 응답 코드를 반환합니다.")
     void signInShouldReturnOk() throws Exception {
         // given
-        SignInCommand command = new SignInCommand("testuser", "password");
+        SignInRequest command = new SignInRequest("testuser", "password");
 
         // when
         JsonWebToken expectedToken = new JsonWebToken("access-token", "refresh-token", 3600);
-        when(authenticationService.authenticate(any(SignInCommand.class))).thenReturn(expectedToken);
+        when(authenticationService.authenticate(any(SignInRequest.class))).thenReturn(expectedToken);
 
         // when & then
         mockMvc.perform(post("/api/sign-in")
@@ -67,9 +67,9 @@ class SignApiControllerTest {
     @DisplayName("계정 인증 요청 실패 시 401 응답 코드를 반환합니다.")
     void signInShouldReturnUnauthorized() throws Exception {
         // given
-        SignInCommand command = new SignInCommand("testuser", "password");
+        SignInRequest command = new SignInRequest("testuser", "password");
 
-        when(authenticationService.authenticate(any(SignInCommand.class)))
+        when(authenticationService.authenticate(any(SignInRequest.class)))
                 .thenThrow(new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
 
         // when & then
@@ -84,7 +84,7 @@ class SignApiControllerTest {
     @DisplayName("계정 인증 요청 입력값 검증 실패 시 422 응답 코드를 반환합니다.")
     void signInShouldReturnUnprocessableEntity() throws Exception {
         // given
-        SignInCommand command = new SignInCommand();
+        SignInRequest command = new SignInRequest();
 
         // when & then
         mockMvc.perform(post("/api/sign-in")
@@ -98,7 +98,7 @@ class SignApiControllerTest {
     @DisplayName("토큰 갱신 요청 성공 시 200 응답 코드를 반환합니다.")
     void refreshTokenShouldReturnOk() throws Exception {
         // given
-        TokenRefreshCommand command = new TokenRefreshCommand("valid-refresh-token");
+        TokenRefreshRequest command = new TokenRefreshRequest("valid-refresh-token");
         JsonWebToken expectedToken = new JsonWebToken("new-access-token", "new-refresh-token", 3600);
 
         when(authenticationService.refreshToken(anyString())).thenReturn(expectedToken);
@@ -118,7 +118,7 @@ class SignApiControllerTest {
     @DisplayName("토큰 갱신 요청 실패 시 200 응답 코드를 반환합니다.")
     void refreshTokenShouldReturnUnauthorized() throws Exception {
         // given
-        TokenRefreshCommand command = new TokenRefreshCommand("invalid-refresh-token");
+        TokenRefreshRequest command = new TokenRefreshRequest("invalid-refresh-token");
 
         when(authenticationService.refreshToken(anyString()))
                 .thenThrow(new BadCredentialsException("유효하지 않은 리프레시 토큰입니다"));
@@ -134,7 +134,7 @@ class SignApiControllerTest {
     @DisplayName("토큰 갱신 요청 입력값 검증 실패 시 422 응답 코드를 반환합니다.")
     void refreshTokenShouldReturnUnprocessableEntity() throws Exception {
         // given
-        TokenRefreshCommand command = new TokenRefreshCommand();
+        TokenRefreshRequest command = new TokenRefreshRequest();
         // refreshToken 필드를 비워둠
 
         // when & then

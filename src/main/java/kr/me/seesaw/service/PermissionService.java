@@ -1,14 +1,14 @@
 package kr.me.seesaw.service;
 
-import kr.me.seesaw.command.SavePermissionCommand;
-import kr.me.seesaw.model.PermissionModel;
+import kr.me.seesaw.request.SavePermissionRequest;
+import kr.me.seesaw.response.PermissionResponse;
 
 import java.util.List;
 
 public interface PermissionService {
 
-    List<PermissionModel> getPermissionsByTargetId(String targetId);
+    List<PermissionResponse> getPermissionsByTargetId(String targetId);
 
-    PermissionModel savePermission(SavePermissionCommand command);
+    PermissionResponse savePermission(SavePermissionRequest command);
 
 }

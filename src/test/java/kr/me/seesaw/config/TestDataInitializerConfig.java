@@ -1,10 +1,10 @@
-package kr.me.seesaw.config;
+package kr.me.seesaw.api.framework.config;
 
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import kr.me.seesaw.command.CreateArticleCommand;
-import kr.me.seesaw.command.CreateCategoryCommand;
-import kr.me.seesaw.command.CreateReplyCommand;
+import kr.me.seesaw.request.CreateArticleRequest;
+import kr.me.seesaw.request.CreateCategoryRequest;
+import kr.me.seesaw.request.CreateReplyRequest;
 import kr.me.seesaw.domain.*;
 import kr.me.seesaw.domain.Permission;
 import kr.me.seesaw.domain.vo.*;
