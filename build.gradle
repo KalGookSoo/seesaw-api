@@ -1,5 +1,5 @@
 dependencies {
-    api project(':seesaw-core')
+    api project(':seesaw-core:calendar')
     implementation('org.springframework.security:spring-security-web')
     implementation('org.springframework.security:spring-security-config')
 
