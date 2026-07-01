@@ -1,6 +1,6 @@
 package kr.me.seesaw;
 
-import kr.me.seesaw.api.framework.config.ApplicationStartupValidator;
+import kr.me.seesaw.framework.context.ApplicationStartupValidator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.ApplicationPidFileWriter;

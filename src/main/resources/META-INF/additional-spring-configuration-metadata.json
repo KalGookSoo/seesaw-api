@@ -2,7 +2,7 @@
   "properties": [
     {
       "name": "kr.me.seesaw.filepath",
-      "type": "java.nio.file.Path",
+      "type": "java.lang.String",
       "description": "첨부 파일을 저장하고 읽어올 기본 디렉터리 경로입니다.",
       "defaultValue": "${user.home}/attachments"
     },
