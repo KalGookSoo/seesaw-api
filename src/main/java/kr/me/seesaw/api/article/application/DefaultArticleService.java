@@ -227,6 +227,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
         article.setFixedOrder(command.getFixedOrder());
         article.setTitle(command.getTitle());
         article.setContent(command.getContent());
+        article.setExposed(true);
 
         Article savedArticle = articleRepository.save(article);
 
