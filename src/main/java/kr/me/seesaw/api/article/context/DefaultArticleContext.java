@@ -30,10 +30,6 @@ public class DefaultArticleContext implements ArticleContext {
 
     private final Map<String, ArticleResponse> articleAggregationCache = new ConcurrentHashMap<>();
 
-    private final Map<String, Page<ArticleResponse>> categoryPageCache = new ConcurrentHashMap<>();
-
-    private final Map<String, List<ArticleResponse>> fixedArticlesCache = new ConcurrentHashMap<>();
-
     @Override
     public Page<ArticleResponse> findAll(Pageable pageable, SearchArticlesRequest search) {
         return articleService.findAll(pageable, search);
@@ -41,8 +37,7 @@ public class DefaultArticleContext implements ArticleContext {
 
     @Override
     public Page<ArticleResponse> findAllByCategoryId(String categoryId, Pageable pageable) {
-        String key = categoryId + ":" + pageable.getPageNumber() + ":" + pageable.getPageSize() + ":" + pageable.getSort();
-        return categoryPageCache.computeIfAbsent(key, ignored -> articleService.findAllByCategoryId(categoryId, pageable));
+        return articleService.findAllByCategoryId(categoryId, pageable);
     }
 
     @Override
@@ -57,8 +52,7 @@ public class DefaultArticleContext implements ArticleContext {
 
     @Override
     public List<ArticleResponse> getFixedArticles(String categoryId, boolean fixed, Sort sort) {
-        String key = categoryId + ":" + fixed + ":" + sort;
-        return fixedArticlesCache.computeIfAbsent(key, ignored -> articleService.getFixedArticles(categoryId, fixed, sort));
+        return articleService.getFixedArticles(categoryId, fixed, sort);
     }
 
     @Nullable
