@@ -11,6 +11,7 @@ import kr.me.seesaw.core.domain.role.Role;
 import kr.me.seesaw.core.domain.site.Site;
 import kr.me.seesaw.core.domain.user.User;
 import kr.me.seesaw.core.domain.view.View;
+import kr.me.seesaw.core.domain.vote.Vote;
 import kr.me.seesaw.core.domain.article.ArticleType;
 import kr.me.seesaw.core.domain.category.CategoryType;
 import kr.me.seesaw.core.domain.user.Email;
@@ -23,8 +24,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.acls.domain.BasePermission;
-
-import java.util.UUID;
 
 /**
  * 테스트 전용 데이터 초기화 구성 클래스.
@@ -290,11 +289,17 @@ public class TestDataInitializerConfig {
     }
 
     private void createVoteIfNeeded(EntityManager entityManager, String referenceId, boolean approved) {
-        entityManager.createNativeQuery("INSERT INTO tb_vote (id, approved, reference_id, version) VALUES (?1, ?2, ?3, 0)")
-                .setParameter(1, UUID.randomUUID().toString())
-                .setParameter(2, approved)
-                .setParameter(3, referenceId)
-                .executeUpdate();
+        boolean exists = !entityManager.createQuery("select v from Vote v where v.referenceId = :referenceId", Vote.class)
+                .setParameter("referenceId", referenceId)
+                .getResultList()
+                .isEmpty();
+
+        if (!exists) {
+            Vote vote = new Vote();
+            vote.setReferenceId(referenceId);
+            vote.setApproved(approved);
+            entityManager.persist(vote);
+        }
     }
 
 }
