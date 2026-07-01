@@ -46,8 +46,6 @@ public class CurrentSiteContext implements SiteContext {
 
     private SiteResponse siteContext;
 
-    private Map<String, CategoryResponse> allCategories;
-
     private List<CategoryResponse> nestedCategories;
 
     @Override
@@ -57,9 +55,10 @@ public class CurrentSiteContext implements SiteContext {
         }
         String applicationName = environment.getProperty("spring.application.name");
         String domainName = applicationName + ".seesaw.me.kr";
-        return siteRepository.findByDomainName(domainName)
+        site = siteRepository.findByDomainName(domainName)
                 .map(SiteResponse::new)
                 .orElseThrow(() -> new NoSuchElementException("사이트를 찾을 수 없습니다. domainName: " + domainName));
+        return site;
     }
 
     @Override
@@ -124,27 +123,16 @@ public class CurrentSiteContext implements SiteContext {
             }
         });
 
-        return siteModel;
+        siteContext = siteModel;
+        site = siteModel;
+        return siteContext;
     }
 
-    @Override
-    public Map<String, CategoryResponse> getAllCategories() {
-        if (this.allCategories == null) {
-            final LinkedHashMap<String, CategoryResponse> categories = getSiteContext().getCategories()
-                    .stream()
-                    .collect(Collectors.toMap(CategoryResponse::getId, Function.identity(), (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-            this.allCategories = Map.copyOf(categories);
+    public List<CategoryResponse> getNestedCategories(List<CategoryResponse> categories) {
+        if (nestedCategories == null) {
+            nestedCategories = List.copyOf(HierarchicalFactory.build(categories));
         }
-        return this.allCategories;
-    }
-
-    @Override
-    public List<CategoryResponse> getNestedCategories() {
-        if (this.nestedCategories == null) {
-            final List<CategoryResponse> categories = HierarchicalFactory.build(getSiteContext().getCategories());
-            this.nestedCategories = List.copyOf(categories);
-        }
-        return this.nestedCategories;
+        return nestedCategories;
     }
 
 }
