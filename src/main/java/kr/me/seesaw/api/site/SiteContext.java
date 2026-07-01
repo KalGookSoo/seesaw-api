@@ -10,6 +10,8 @@ public interface SiteContext {
 
     SiteResponse getSite();
 
+    SiteResponse getSiteContext();
+
     Map<String, CategoryResponse> getAllCategories();
 
     List<CategoryResponse> getNestedCategories();

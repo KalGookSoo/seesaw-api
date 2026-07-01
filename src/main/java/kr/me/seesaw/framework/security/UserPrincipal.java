@@ -1,4 +1,4 @@
-package kr.me.seesaw.api.sign.dto;
+package kr.me.seesaw.framework.security;
 
 import kr.me.seesaw.api.user.dto.UserResponse;
 import kr.me.seesaw.api.role.dto.RoleResponse;

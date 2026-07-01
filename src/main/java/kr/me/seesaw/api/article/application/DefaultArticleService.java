@@ -83,7 +83,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
     @Transactional(readOnly = true)
     @Override
     public Page<ArticleResponse> findAll(Pageable pageable, SearchArticlesRequest search) {
-        logger.debug("게시글 전체 조회: pageable={}, search={}", pageable, search);
+        logger.debug("게시글 목록 조회: pageable={}, search={}", pageable, search);
         String sort = pageable.getSort().isSorted() ? pageable.getSort().toString().replace(":", "") : Sort.Direction.DESC.name();
 
         List<Article> articles = articleQueryRepository.search(

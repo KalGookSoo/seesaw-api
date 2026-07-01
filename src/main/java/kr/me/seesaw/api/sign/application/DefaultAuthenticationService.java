@@ -8,7 +8,7 @@ import kr.me.seesaw.core.domain.user.User;
 import kr.me.seesaw.api.security.dto.JsonWebToken;
 import kr.me.seesaw.api.role.dto.RoleResponse;
 import kr.me.seesaw.api.user.dto.UserResponse;
-import kr.me.seesaw.api.sign.dto.UserPrincipal;
+import kr.me.seesaw.framework.security.UserPrincipal;
 import kr.me.seesaw.core.domain.role.RoleRepository;
 import kr.me.seesaw.core.domain.user.UserRepository;
 import kr.me.seesaw.framework.security.JwtTokenProvider;

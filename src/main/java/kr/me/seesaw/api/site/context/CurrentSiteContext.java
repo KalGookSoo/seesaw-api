@@ -1,39 +1,35 @@
 package kr.me.seesaw.api.site.context;
 
-import kr.me.seesaw.api.site.SiteContext;
-import kr.me.seesaw.core.support.hierarchy.HierarchicalFactory;
-import kr.me.seesaw.core.domain.category.Category;
-import kr.me.seesaw.core.domain.site.Site;
 import kr.me.seesaw.api.article.dto.ArticleResponse;
 import kr.me.seesaw.api.attachment.dto.AttachmentResponse;
-import kr.me.seesaw.core.support.dto.BaseResponse;
 import kr.me.seesaw.api.category.dto.CategoryResponse;
+import kr.me.seesaw.api.site.SiteContext;
 import kr.me.seesaw.api.site.dto.SiteResponse;
 import kr.me.seesaw.core.domain.article.ArticleQueryRepository;
 import kr.me.seesaw.core.domain.attachment.AttachmentRepository;
+import kr.me.seesaw.core.domain.category.Category;
+import kr.me.seesaw.core.domain.site.Site;
 import kr.me.seesaw.core.domain.site.SiteRepository;
+import kr.me.seesaw.core.support.dto.BaseResponse;
+import kr.me.seesaw.core.support.hierarchy.HierarchicalFactory;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.annotation.RequestScope;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@RequestScope
-@Transactional
+@RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-@Service("siteContext")
+@Component("siteContext")
 public class CurrentSiteContext implements SiteContext {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -48,22 +44,32 @@ public class CurrentSiteContext implements SiteContext {
 
     private SiteResponse site;
 
+    private SiteResponse siteContext;
+
     private Map<String, CategoryResponse> allCategories;
 
     private List<CategoryResponse> nestedCategories;
 
-    @Transactional(readOnly = true)
     @Override
     public SiteResponse getSite() {
-        if (this.site == null) {
-            String applicationName = environment.getProperty("spring.application.name");
-            String domainName = applicationName + ".seesaw.me.kr";
-            this.site = getSiteContext(domainName);
+        if (site != null) {
+            return site;
         }
-        return this.site;
+        String applicationName = environment.getProperty("spring.application.name");
+        String domainName = applicationName + ".seesaw.me.kr";
+        return siteRepository.findByDomainName(domainName)
+                .map(SiteResponse::new)
+                .orElseThrow(() -> new NoSuchElementException("사이트를 찾을 수 없습니다. domainName: " + domainName));
     }
 
-    private SiteResponse getSiteContext(String domainName) {
+    @Override
+    public SiteResponse getSiteContext() {
+        if (siteContext != null) {
+            return siteContext;
+        }
+        String applicationName = environment.getProperty("spring.application.name");
+        String domainName = applicationName + ".seesaw.me.kr";
+
         logger.debug("사이트 컨텍스트 조회: domainName={}", domainName);
         Site siteEntity = siteRepository.findByDomainName(domainName)
                 .orElseThrow(() -> new NoSuchElementException("사이트를 찾을 수 없습니다. domainName: " + domainName));
@@ -124,7 +130,7 @@ public class CurrentSiteContext implements SiteContext {
     @Override
     public Map<String, CategoryResponse> getAllCategories() {
         if (this.allCategories == null) {
-            final LinkedHashMap<String, CategoryResponse> categories = getSite().getCategories()
+            final LinkedHashMap<String, CategoryResponse> categories = getSiteContext().getCategories()
                     .stream()
                     .collect(Collectors.toMap(CategoryResponse::getId, Function.identity(), (oldValue, newValue) -> oldValue, LinkedHashMap::new));
             this.allCategories = Map.copyOf(categories);
@@ -135,7 +141,7 @@ public class CurrentSiteContext implements SiteContext {
     @Override
     public List<CategoryResponse> getNestedCategories() {
         if (this.nestedCategories == null) {
-            final List<CategoryResponse> categories = HierarchicalFactory.build(getSite().getCategories());
+            final List<CategoryResponse> categories = HierarchicalFactory.build(getSiteContext().getCategories());
             this.nestedCategories = List.copyOf(categories);
         }
         return this.nestedCategories;

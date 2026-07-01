@@ -17,7 +17,7 @@ public class ApplicationStartupValidator implements ApplicationListener<Applicat
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public void onApplicationEvent(@NonNull ApplicationEvent event) {
+    public void onApplicationEvent(ApplicationEvent event) {
         if (event instanceof ApplicationEnvironmentPreparedEvent) {
             validateProfile((ApplicationEnvironmentPreparedEvent) event);
         }
