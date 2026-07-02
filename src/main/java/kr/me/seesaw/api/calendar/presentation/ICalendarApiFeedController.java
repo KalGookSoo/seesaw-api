@@ -32,6 +32,8 @@ public class ICalendarApiFeedController {
                 .end(end)
                 .build();
 
+        final String feed = iCalendarFeedService.createFeed(request);
+
         return ResponseEntity.ok()
                 .contentType(TEXT_CALENDAR_MEDIA_TYPE)
                 .cacheControl(CacheControl.maxAge(Duration.ofMinutes(10)).cachePublic())
@@ -39,7 +41,7 @@ public class ICalendarApiFeedController {
                         .filename("seesaw-calendar.ics", StandardCharsets.UTF_8)
                         .build()
                         .toString())
-                .body(iCalendarFeedService.createFeed(request));
+                .body(feed);
     }
 
 }

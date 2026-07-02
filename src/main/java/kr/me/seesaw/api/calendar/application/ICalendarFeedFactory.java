@@ -1,9 +1,11 @@
 package kr.me.seesaw.api.calendar.application;
 
-import kr.me.seesaw.framework.context.properties.SeesawApiProperties;
 import kr.me.seesaw.core.domain.article.Article;
-import kr.me.seesaw.core.domain.event.VEvent;
+import kr.me.seesaw.core.domain.category.Category;
+import kr.me.seesaw.core.domain.category.CategoryRepository;
 import kr.me.seesaw.core.domain.event.RecurrenceRule;
+import kr.me.seesaw.core.domain.event.VEvent;
+import kr.me.seesaw.core.domain.site.Site;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
@@ -17,6 +19,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Component
@@ -28,7 +31,7 @@ public class ICalendarFeedFactory {
     private static final DateTimeFormatter UTC_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
             .withZone(ZoneOffset.UTC);
 
-    private final SeesawApiProperties properties;
+    private final CategoryRepository categoryRepository;
 
     public String create(List<VEvent> events, String categoryId) {
         List<String> lines = new ArrayList<>();
@@ -48,7 +51,10 @@ public class ICalendarFeedFactory {
     }
 
     private String createCalendarName(String categoryId) {
-        return StringUtils.hasText(categoryId) ? "Seesaw " + categoryId : "Seesaw Calendar";
+        final Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NoSuchElementException("카테고리를 찾을 수 없습니다. categoryId: " + categoryId));
+        final Site site = category.getSite();
+        return String.format("%s - %s", site.getName(), category.getName());
     }
 
     private List<String> createEvent(VEvent event) {
