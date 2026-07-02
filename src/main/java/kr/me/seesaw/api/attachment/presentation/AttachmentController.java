@@ -1,15 +1,19 @@
 package kr.me.seesaw.api.attachment.presentation;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import kr.me.seesaw.api.article.ArticleQueryService;
 import kr.me.seesaw.api.attachment.AttachmentService;
 import kr.me.seesaw.api.attachment.dto.AttachmentResponse;
 import kr.me.seesaw.core.support.file.FileManager;
+import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +31,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @RequiredArgsConstructor
+@Validated
 @Controller
 @RequestMapping("/attachments")
 public class AttachmentController {
@@ -39,7 +44,7 @@ public class AttachmentController {
 
     @GetMapping("/{id}/download")
     public void getAttachment(
-            @PathVariable("id") String id,
+            @PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id,
             HttpServletResponse response
     ) throws IOException {
         AttachmentResponse attachment = attachmentService.getAttachmentById(id);
@@ -58,7 +63,7 @@ public class AttachmentController {
 
     @GetMapping("/download-zip")
     public void getAttachments(
-            @RequestParam String articleId,
+            @RequestParam @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String articleId,
             HttpServletResponse response
     ) throws IOException {
         List<AttachmentResponse> attachments = articleQueryService.getAttachments(articleId)

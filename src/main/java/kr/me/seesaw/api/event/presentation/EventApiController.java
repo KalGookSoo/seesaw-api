@@ -1,24 +1,25 @@
 package kr.me.seesaw.api.event.presentation;
 
 import jakarta.validation.Valid;
-import kr.me.seesaw.core.support.validation.ValidationError;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import kr.me.seesaw.api.calendar.EventWebService;
 import kr.me.seesaw.api.calendar.dto.CreateEventRequest;
+import kr.me.seesaw.api.calendar.dto.SearchEventsRequest;
 import kr.me.seesaw.api.calendar.dto.UpdateEventRequest;
 import kr.me.seesaw.api.calendar.dto.VEventResponse;
-import kr.me.seesaw.api.calendar.dto.SearchEventsRequest;
-import kr.me.seesaw.api.calendar.EventWebService;
+import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/events")
 public class EventApiController {
@@ -26,12 +27,12 @@ public class EventApiController {
     private final EventWebService eventWebService;
 
     @GetMapping
-    public ResponseEntity<List<VEventResponse>> findAll(SearchEventsRequest request) {
+    public ResponseEntity<List<VEventResponse>> findAll(@Valid SearchEventsRequest request) {
         return ResponseEntity.ok(eventWebService.findAll(request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VEventResponse> find(@PathVariable String id) {
+    public ResponseEntity<VEventResponse> find(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         return ResponseEntity.ok(eventWebService.find(id));
     }
 
@@ -44,7 +45,7 @@ public class EventApiController {
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
     public ResponseEntity<VEventResponse> update(
-            @PathVariable String id,
+            @PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id,
             @Valid UpdateEventRequest command
     ) throws IOException {
         return ResponseEntity.ok(eventWebService.update(id, command));
@@ -52,20 +53,9 @@ public class EventApiController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @eventContext.isOwner(#id)")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         eventWebService.delete(id);
         return ResponseEntity.ok().build();
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        List<ValidationError> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(ValidationError::new)
-                .toList();
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(Map.of("errors", errors));
     }
 
 }

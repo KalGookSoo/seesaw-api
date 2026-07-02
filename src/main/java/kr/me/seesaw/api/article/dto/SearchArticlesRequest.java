@@ -1,6 +1,9 @@
 package kr.me.seesaw.api.article.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import kr.me.seesaw.core.domain.category.CategoryType;
+import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,8 @@ import java.util.Optional;
 @Data
 public class SearchArticlesRequest {
 
+    @NotBlank
+    @Pattern(regexp = PatternMatcher.UUID_V4)
     private String categoryId;
 
     private CategoryType categoryType;

@@ -2,11 +2,10 @@ package kr.me.seesaw.framework.web;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.persistence.EntityNotFoundException;
-import kr.me.seesaw.core.support.validation.ValidationError;
+import jakarta.validation.ConstraintViolationException;
 import kr.me.seesaw.core.support.message.CmsMessageSource;
+import kr.me.seesaw.core.support.validation.ValidationError;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -34,8 +33,6 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 @RestControllerAdvice
 public class SeesawApiControllerAdvice extends ResponseEntityExceptionHandler {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final CmsMessageSource messageSource;
 
@@ -74,6 +71,7 @@ public class SeesawApiControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDeniedException(AccessDeniedException ex) {
+        logger.warn(ex.getMessage());
         String message = messageSource.getMessage("error.access.denied");
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("message", message));
@@ -81,7 +79,7 @@ public class SeesawApiControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
-        logger.error("RuntimeException: {}", ex.getMessage());
+        logger.error("RuntimeException: " + ex.getMessage());
         String message = messageSource.getMessage("error.internal.server.error.message");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", message));
@@ -89,6 +87,7 @@ public class SeesawApiControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<Map<String, String>> handleNoSuchElementException(NoSuchElementException ex) {
+        logger.warn(ex.getMessage());
         String message = messageSource.getMessage("error.not.found.resource");
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", message));
@@ -97,6 +96,20 @@ public class SeesawApiControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleEntityNotFoundException(EntityNotFoundException ex) {
         return handleNoSuchElementException(new NoSuchElementException(ex));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, List<Map<String, String>>>> handleConstraintViolationException(ConstraintViolationException ex) {
+        List<Map<String, String>> errors = ex.getConstraintViolations()
+                .stream()
+                .map(violation -> Map.of(
+                        "field", violation.getPropertyPath().toString(),
+                        "message", violation.getMessage(),
+                        "rejectedValue", String.valueOf(violation.getInvalidValue())
+                ))
+                .toList();
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(Map.of("errors", errors));
     }
 
     @Override

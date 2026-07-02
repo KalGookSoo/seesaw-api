@@ -1,9 +1,12 @@
 package kr.me.seesaw.api.attachment.presentation;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import kr.me.seesaw.core.support.file.FileManager;
 import kr.me.seesaw.api.attachment.dto.AttachmentResponse;
 import kr.me.seesaw.api.attachment.AttachmentQueryService;
 import kr.me.seesaw.api.attachment.AttachmentService;
+import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -13,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
@@ -22,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
+@Validated
 @RestController
 @RequestMapping("/api/attachments")
 public class AttachmentApiController {
@@ -33,14 +38,14 @@ public class AttachmentApiController {
     private final FileManager fileManager;
 
     @GetMapping
-    public ResponseEntity<Map<String, List<AttachmentResponse>>> getAttachments(@RequestParam("referenceId") String referenceId) {
+    public ResponseEntity<Map<String, List<AttachmentResponse>>> getAttachments(@RequestParam("referenceId") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String referenceId) {
         List<AttachmentResponse> attachments = attachmentQueryService.getAttachments(referenceId);
         return ResponseEntity.ok(Map.of("attachments", attachments));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Resource> getAttachment(
-            @PathVariable("id") String id
+            @PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id
     ) throws IOException {
         AttachmentResponse attachment = attachmentService.getAttachmentById(id);
         ByteArrayInputStream stream = fileManager.read(attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName()));
@@ -71,7 +76,7 @@ public class AttachmentApiController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @defaultAttachmentPermissionService.isOwner(#id)")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAttachment(@PathVariable("id") String id) {
+    public ResponseEntity<Void> deleteAttachment(@PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         attachmentService.deleteAttachment(id);
         return ResponseEntity.noContent().build();
     }

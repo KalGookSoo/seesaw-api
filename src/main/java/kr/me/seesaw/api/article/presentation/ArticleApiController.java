@@ -1,10 +1,13 @@
 package kr.me.seesaw.api.article.presentation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import kr.me.seesaw.api.article.dto.CreateArticleRequest;
 import kr.me.seesaw.api.article.dto.MoveArticleRequest;
 import kr.me.seesaw.api.article.dto.UpdateArticleRequest;
 import kr.me.seesaw.api.article.ArticleContext;
+import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import kr.me.seesaw.core.support.message.CmsMessageSource;
 import kr.me.seesaw.api.article.dto.ArticleResponse;
 import kr.me.seesaw.api.article.dto.SearchArticlesRequest;
@@ -17,6 +20,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -24,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
+@Validated
 @RestController
 @RequestMapping("/api/articles")
 public class ArticleApiController {
@@ -37,7 +42,7 @@ public class ArticleApiController {
     @GetMapping
     public ResponseEntity<PagedModel<ArticleResponse>> getArticles(
             @PageableDefault(size = 8, sort = "article.createdDate", direction = Sort.Direction.DESC) Pageable pageable,
-            @ModelAttribute("search") SearchArticlesRequest search
+            @Valid @ModelAttribute("search") SearchArticlesRequest search
     ) {
         Page<ArticleResponse> page = articleContext.findAll(pageable, search);
         return ResponseEntity.ok(new PagedModel<>(page));
@@ -45,7 +50,10 @@ public class ArticleApiController {
 
     @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or @categoryPermissionEvaluator.hasPermission(#categoryId, T(org.springframework.security.acls.domain.BasePermission).READ))")
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, ArticleResponse>> getArticle(@PathVariable("id") String id, @RequestParam("categoryId") String categoryId) {
+    public ResponseEntity<Map<String, ArticleResponse>> getArticle(
+            @PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id,
+            @RequestParam("categoryId") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String categoryId
+    ) {
         ArticleResponse article = articleContext.getArticleAggregation(id);
         return ResponseEntity.ok(Map.of("article", article));
     }
@@ -60,7 +68,7 @@ public class ArticleApiController {
 
     @PreAuthorize("@articlePermissionContext.isOwner(#id, authentication.name)")
     @PostMapping("/{id}")
-    public ResponseEntity<String> update(@PathVariable String id, @Valid UpdateArticleRequest command) throws IOException {
+    public ResponseEntity<String> update(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id, @Valid UpdateArticleRequest command) throws IOException {
         articleService.update(id, command);
         String message = messageSource.getMessage("command.success.update");
         return ResponseEntity.ok(message);
@@ -68,7 +76,7 @@ public class ArticleApiController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @articlePermissionContext.isOwner(#id, authentication.name)")
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable String id) {
+    public ResponseEntity<String> delete(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         articleService.delete(id);
         String message = messageSource.getMessage("command.success.delete");
         return ResponseEntity.ok(message);
@@ -84,7 +92,7 @@ public class ArticleApiController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PutMapping("/{id}/move")
-    public ResponseEntity<String> move(@PathVariable String id, @Valid MoveArticleRequest command) {
+    public ResponseEntity<String> move(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id, @Valid MoveArticleRequest command) {
         articleService.move(id, command);
         String message = messageSource.getMessage("command.success.update");
         return ResponseEntity.ok(message);

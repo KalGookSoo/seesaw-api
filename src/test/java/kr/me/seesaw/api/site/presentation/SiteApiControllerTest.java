@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -118,9 +119,10 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("사이트 단건 조회 - 존재하면 2xx와 사이트 반환")
     void getSiteById() throws Exception {
-        Mockito.when(siteService.getSiteById("id-1")).thenReturn(Mockito.mock(SiteResponse.class));
+        final String siteId = UUID.randomUUID().toString();
+        Mockito.when(siteService.getSiteById(siteId)).thenReturn(Mockito.mock(SiteResponse.class));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/sites/{id}", "id-1"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/sites/{id}", siteId))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
     }
@@ -152,10 +154,11 @@ class SiteApiControllerTest {
                 "dummy background".getBytes()
         );
 
-        Mockito.when(siteService.updateSite(Mockito.eq("id-1"), Mockito.any(CreateSiteRequest.class))).thenReturn(Mockito.mock(SiteResponse.class));
+        final String siteId = UUID.randomUUID().toString();
+        Mockito.when(siteService.updateSite(Mockito.eq(siteId), Mockito.any(CreateSiteRequest.class))).thenReturn(Mockito.mock(SiteResponse.class));
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.multipart("/api/sites/{id}", "id-1")
+                        MockMvcRequestBuilders.multipart("/api/sites/{id}", siteId)
                                 .file(profileImage)
                                 .file(backgroundImage)
                                 .param("name", "updated")
@@ -178,10 +181,11 @@ class SiteApiControllerTest {
     @Test
     @DisplayName("사이트 삭제 - 204 No Content")
     void deleteSite() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/sites/{id}", "id-1"))
+        final String siteId = UUID.randomUUID().toString();
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/sites/{id}", siteId))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-        Mockito.verify(siteService).deleteSite("id-1");
+        Mockito.verify(siteService).deleteSite(siteId);
     }
 
 }
