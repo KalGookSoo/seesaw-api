@@ -3,6 +3,7 @@ package kr.me.seesaw.api.site.presentation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import kr.me.seesaw.api.site.SiteContext;
 import kr.me.seesaw.api.site.dto.CreateSiteRequest;
 import kr.me.seesaw.core.support.authentication.PrincipalProvider;
 import kr.me.seesaw.core.support.pattern.PatternMatcher;
@@ -25,6 +26,8 @@ import java.util.List;
 public class SiteApiController {
 
     private final SiteService siteService;
+
+    private final SiteContext siteContext;
 
     private final PrincipalProvider principalProvider;
 
@@ -51,8 +54,14 @@ public class SiteApiController {
     }
 
     @GetMapping("/by-domain/{domainName}")
-    public ResponseEntity<SiteResponse> getSiteContext(@PathVariable("domainName") @NotBlank String domainName) {
+    public ResponseEntity<SiteResponse> getSiteByDomainName(@PathVariable("domainName") @NotBlank String domainName) {
         SiteResponse site = siteService.getSiteByDomainName(domainName);
+        return ResponseEntity.ok(site);
+    }
+
+    @GetMapping("/by-domain/{domainName}/context")
+    public ResponseEntity<SiteResponse> getSiteContext(@PathVariable("domainName") @NotBlank String domainName) {
+        SiteResponse site = siteContext.getSiteContext(domainName);
         return ResponseEntity.ok(site);
     }
 

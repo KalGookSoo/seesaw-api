@@ -62,12 +62,10 @@ public class CurrentSiteContext implements SiteContext {
     }
 
     @Override
-    public SiteResponse getSiteContext() {
+    public SiteResponse getSiteContext(String domainName) {
         if (siteContext != null) {
             return siteContext;
         }
-        String applicationName = environment.getProperty("spring.application.name");
-        String domainName = applicationName + ".seesaw.me.kr";
 
         logger.debug("사이트 컨텍스트 조회: domainName={}", domainName);
         Site siteEntity = siteRepository.findByDomainName(domainName)
