@@ -2,7 +2,13 @@ package kr.me.seesaw.api.article.application;
 
 import kr.me.seesaw.api.article.ArticleQueryService;
 import kr.me.seesaw.api.article.ArticleService;
-import kr.me.seesaw.framework.context.properties.SeesawApiProperties;
+import kr.me.seesaw.api.article.dto.*;
+import kr.me.seesaw.api.article.event.ArticleCreatedEvent;
+import kr.me.seesaw.api.article.event.ArticleViewedEvent;
+import kr.me.seesaw.api.attachment.dto.AttachmentResponse;
+import kr.me.seesaw.api.reply.dto.ReplyResponse;
+import kr.me.seesaw.api.view.dto.ViewResponse;
+import kr.me.seesaw.core.domain.BaseEntity;
 import kr.me.seesaw.core.domain.article.Article;
 import kr.me.seesaw.core.domain.article.ArticleQueryRepository;
 import kr.me.seesaw.core.domain.article.ArticleRepository;
@@ -16,18 +22,8 @@ import kr.me.seesaw.core.domain.view.View;
 import kr.me.seesaw.core.domain.view.ViewRepository;
 import kr.me.seesaw.core.support.audit.IpAddressExtractor;
 import kr.me.seesaw.core.support.authentication.PrincipalProvider;
-import kr.me.seesaw.core.domain.*;
 import kr.me.seesaw.core.support.file.FileManager;
-import kr.me.seesaw.api.article.event.ArticleCreatedEvent;
-import kr.me.seesaw.api.article.event.ArticleViewedEvent;
-import kr.me.seesaw.api.article.dto.CreateArticleRequest;
-import kr.me.seesaw.api.article.dto.MoveArticleRequest;
-import kr.me.seesaw.api.article.dto.UpdateArticleRequest;
-import kr.me.seesaw.api.article.dto.SearchArticlesRequest;
-import kr.me.seesaw.api.article.dto.ArticleResponse;
-import kr.me.seesaw.api.attachment.dto.AttachmentResponse;
-import kr.me.seesaw.api.reply.dto.ReplyResponse;
-import kr.me.seesaw.api.view.dto.ViewResponse;
+import kr.me.seesaw.framework.context.properties.SeesawApiProperties;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -104,34 +100,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             return page;
         }
 
-        List<String> articleIds = page.getContent()
-                .stream()
-                .map(ArticleResponse::getId)
-                .toList();
-
-        List<ReplyResponse> replies = replyRepository.findAllByArticleIdIn(articleIds)
-                .stream()
-                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
-                .map(ReplyResponse::new)
-                .toList();
-        page.getContent()
-                .forEach(article -> article.joinReplies(replies));
-
-        List<ViewResponse> views = viewRepository.findAllByArticleIdIn(articleIds)
-                .stream()
-                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
-                .map(ViewResponse::new)
-                .toList();
-        page.getContent()
-                .forEach(article -> article.joinViews(views));
-
-        List<AttachmentResponse> attachments = attachmentRepository.findAllByReferenceIdIn(articleIds)
-                .stream()
-                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
-                .map(AttachmentResponse::new)
-                .toList();
-        page.getContent()
-                .forEach(article -> article.joinAttachments(attachments));
+        joinArticleAggregations(page.getContent());
         return page;
     }
 
@@ -146,28 +115,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
         if (pageable.isUnpaged()) {
             return page;
         }
-        List<String> articleIds = page.getContent().stream().map(ArticleResponse::getId).toList();
-
-        List<ReplyResponse> replies = replyRepository.findAllByArticleIdIn(articleIds)
-                .stream()
-                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
-                .map(ReplyResponse::new)
-                .toList();
-        page.getContent().forEach(article -> article.joinReplies(replies));
-
-        List<ViewResponse> views = viewRepository.findAllByArticleIdIn(articleIds)
-                .stream()
-                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
-                .map(ViewResponse::new)
-                .toList();
-        page.getContent().forEach(article -> article.joinViews(views));
-
-        List<AttachmentResponse> attachments = attachmentRepository.findAllByReferenceIdIn(articleIds)
-                .stream()
-                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
-                .map(AttachmentResponse::new)
-                .toList();
-        page.getContent().forEach(article -> article.joinAttachments(attachments));
+        joinArticleAggregations(page.getContent());
         return page;
     }
 
@@ -413,10 +361,43 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
     @Override
     public List<ArticleResponse> getFixedArticles(String categoryId, boolean fixed, Sort sort) {
         logger.debug("고정 게시글 조회: categoryId={}, fixed={}, sort={}", categoryId, fixed, sort);
-        return articleRepository.findAllByCategoryIdAndFixed(categoryId, fixed, sort)
+        List<ArticleResponse> articles = articleRepository.findAllByCategoryIdAndFixed(categoryId, fixed, sort)
                 .stream()
                 .map(ArticleResponse::new)
                 .toList();
+        joinArticleAggregations(articles);
+        return articles;
+    }
+
+    private void joinArticleAggregations(List<ArticleResponse> articles) {
+        if (articles.isEmpty()) {
+            return;
+        }
+
+        List<String> articleIds = articles.stream()
+                .map(ArticleResponse::getId)
+                .toList();
+
+        List<ReplyResponse> replies = replyRepository.findAllByArticleIdIn(articleIds)
+                .stream()
+                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
+                .map(ReplyResponse::new)
+                .toList();
+        articles.forEach(article -> article.joinReplies(replies));
+
+        List<ViewResponse> views = viewRepository.findAllByArticleIdIn(articleIds)
+                .stream()
+                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
+                .map(ViewResponse::new)
+                .toList();
+        articles.forEach(article -> article.joinViews(views));
+
+        List<AttachmentResponse> attachments = attachmentRepository.findAllByReferenceIdIn(articleIds)
+                .stream()
+                .sorted(Comparator.comparing(BaseEntity::getCreatedDate))
+                .map(AttachmentResponse::new)
+                .toList();
+        articles.forEach(article -> article.joinAttachments(attachments));
     }
 
     @Nullable

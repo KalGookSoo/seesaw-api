@@ -3,15 +3,11 @@ package kr.me.seesaw.api.article.presentation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import kr.me.seesaw.api.article.dto.CreateArticleRequest;
-import kr.me.seesaw.api.article.dto.MoveArticleRequest;
-import kr.me.seesaw.api.article.dto.UpdateArticleRequest;
 import kr.me.seesaw.api.article.ArticleContext;
-import kr.me.seesaw.core.support.pattern.PatternMatcher;
-import kr.me.seesaw.core.support.message.CmsMessageSource;
-import kr.me.seesaw.api.article.dto.ArticleResponse;
-import kr.me.seesaw.api.article.dto.SearchArticlesRequest;
 import kr.me.seesaw.api.article.ArticleService;
+import kr.me.seesaw.api.article.dto.*;
+import kr.me.seesaw.core.support.message.CmsMessageSource;
+import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +42,25 @@ public class ArticleApiController {
     ) {
         Page<ArticleResponse> page = articleContext.findAll(pageable, search);
         return ResponseEntity.ok(new PagedModel<>(page));
+    }
+
+    @GetMapping("/static-content")
+    public ResponseEntity<List<ArticleResponse>> getStaticContentArticles(
+            @RequestParam @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String categoryId
+    ) {
+        Sort sort = Sort.by(Sort.Order.asc("fixedOrder"), Sort.Order.desc("createdDate"));
+        Pageable pageable = Pageable.unpaged(sort);
+        Page<ArticleResponse> page = articleContext.findAllByCategoryId(categoryId, pageable);
+        return ResponseEntity.ok(page.getContent());
+    }
+
+    @GetMapping("/fixed")
+    public ResponseEntity<List<ArticleResponse>> getFixedArticles(
+            @RequestParam @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String categoryId
+    ) {
+        Sort sort = Sort.by(Sort.Order.asc("fixedOrder"), Sort.Order.desc("createdDate"));
+        List<ArticleResponse> fixedArticles = articleContext.getFixedArticles(categoryId, true, sort);
+        return ResponseEntity.ok(fixedArticles);
     }
 
     @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or @categoryPermissionEvaluator.hasPermission(#categoryId, T(org.springframework.security.acls.domain.BasePermission).READ))")
