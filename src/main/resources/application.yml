@@ -113,7 +113,6 @@ logging:
           utils:
             SpringDocAnnotationsUtils: error
 
-# Attachment
 kr:
   me:
     seesaw:
@@ -121,6 +120,8 @@ kr:
       cors-allowed-origins:
         - "http://localhost:*"
         - "http://127.0.0.1:*"
+        - "https://seesaw-console.vercel.app"
+        - "https://seesaw-web-v2.vercel.app"
 
 # Swagger/OpenAPI
 springdoc:
