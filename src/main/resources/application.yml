@@ -3,6 +3,7 @@ server:
     context-path: /seesaw-api
   address: localhost
   port: 8080
+  forward-headers-strategy: framework
 
 spring:
   application:
