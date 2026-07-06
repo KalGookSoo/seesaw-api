@@ -1,6 +1,7 @@
 package kr.me.seesaw.api.site.presentation;
 
 import kr.me.seesaw.api.site.SiteService;
+import kr.me.seesaw.api.site.context.CurrentSiteContext;
 import kr.me.seesaw.api.site.dto.CreateSiteRequest;
 import kr.me.seesaw.api.site.dto.SiteResponse;
 import kr.me.seesaw.core.domain.role.RoleName;
@@ -35,7 +36,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
-@Import({SeesawApiControllerAdvice.class})
+@Import({SeesawApiControllerAdvice.class, CurrentSiteContext.class})
 @WebMvcTest(controllers = {SiteApiController.class})
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class SiteApiControllerTest {
