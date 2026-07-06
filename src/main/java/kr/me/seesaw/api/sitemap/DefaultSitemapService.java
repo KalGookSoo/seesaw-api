@@ -1,4 +1,4 @@
-package kr.me.seesaw.framework.web;
+package kr.me.seesaw.api.sitemap;
 
 import kr.me.seesaw.api.article.dto.ArticleResponse;
 import kr.me.seesaw.api.category.dto.CategoryResponse;

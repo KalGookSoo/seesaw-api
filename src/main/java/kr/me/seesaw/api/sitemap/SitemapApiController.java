@@ -1,4 +1,4 @@
-package kr.me.seesaw.framework.web;
+package kr.me.seesaw.api.sitemap;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
