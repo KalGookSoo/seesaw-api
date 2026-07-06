@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Duration;
 
@@ -21,12 +22,23 @@ public class SitemapApiController {
 
     private final SitemapService sitemapService;
 
-    @GetMapping(value = "/api/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
+    @GetMapping(value = "/api/test/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> getSitemap(@RequestParam @NotBlank String origin, @RequestParam @NotBlank String domainName) {
         return ResponseEntity.ok()
                 .contentType(XML_MEDIA_TYPE)
                 .cacheControl(CacheControl.maxAge(Duration.ofMinutes(10)))
                 .body(sitemapService.getSitemap(origin, domainName));
+    }
+
+    @GetMapping(value = "/api/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
+    public ResponseEntity<String> getSitemap() {
+        final ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentContextPath();
+        final String origin = builder.toUriString();
+        final String host = builder.build().getHost();
+        return ResponseEntity.ok()
+                .contentType(XML_MEDIA_TYPE)
+                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(10)))
+                .body(sitemapService.getSitemap(origin, host));
     }
 
 }
