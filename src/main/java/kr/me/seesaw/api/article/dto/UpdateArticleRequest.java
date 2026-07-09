@@ -73,6 +73,20 @@ public class UpdateArticleRequest implements Serializable {
                 .toList();
     }
 
+    @Override
+    public String toString() {
+        return "UpdateArticleRequest{" +
+                "categoryId='" + categoryId + '\'' +
+                ", type=" + type +
+                ", fixed=" + fixed +
+                ", fixedOrder=" + fixedOrder +
+                ", title='" + title + '\'' +
+                ", content='" + truncateContent(content) + '\'' +
+                ", multipartFiles.size=" + size(multipartFiles) +
+                ", inlineImages.size=" + size(inlineImages) +
+                '}';
+    }
+
     @AssertTrue(message = "첨부파일은 최대 50MB까지 업로드할 수 있습니다.")
     public boolean isMultipartFilesSizeValid() {
         return isMultipartFilesSizeValid(multipartFiles);
@@ -90,6 +104,17 @@ public class UpdateArticleRequest implements Serializable {
 
     private boolean isMultipartFileSizeValid(MultipartFile multipartFile) {
         return multipartFile == null || multipartFile.isEmpty() || multipartFile.getSize() <= MAX_FILE_SIZE;
+    }
+
+    private String truncateContent(String content) {
+        if (content == null || content.length() <= 20) {
+            return content;
+        }
+        return content.substring(0, 20);
+    }
+
+    private int size(List<MultipartFile> multipartFiles) {
+        return multipartFiles == null ? 0 : multipartFiles.size();
     }
 
 }
