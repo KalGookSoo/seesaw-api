@@ -1,5 +1,6 @@
 package kr.me.seesaw.api.attachment.presentation;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import kr.me.seesaw.core.support.file.FileManager;
@@ -16,14 +17,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RequiredArgsConstructor
 @Validated
@@ -72,6 +79,58 @@ public class AttachmentApiController {
                 .build()
                 .toString());
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(resource);
+    }
+
+    @GetMapping("/{id}/download")
+    public void downloadAttachment(
+            @PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id,
+            HttpServletResponse response
+    ) throws IOException {
+        AttachmentResponse attachment = attachmentService.getAttachmentById(id);
+        String fileName = attachment.getOriginalName();
+        ByteArrayInputStream inputStream = fileManager.read(attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName()));
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                .filename(fileName, StandardCharsets.UTF_8)
+                .build()
+                .toString());
+        OutputStream outputStream = response.getOutputStream();
+        FileCopyUtils.copy(inputStream, outputStream);
+    }
+
+    @GetMapping("/download-zip")
+    public void downloadAttachments(
+            @RequestParam @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String articleId,
+            HttpServletResponse response
+    ) throws IOException {
+        List<AttachmentResponse> attachments = attachmentQueryService.getArticleAttachments(articleId);
+        if (attachments.isEmpty()) {
+            throw new NoSuchElementException();
+        }
+        if (attachments.size() == 1) {
+            downloadAttachment(attachments.get(0).getId(), response);
+            return;
+        }
+        String title = attachments.get(0).getOriginalName() + " (외 " + (attachments.size() - 1) + "개)";
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/zip");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                .filename(title + ".zip", StandardCharsets.UTF_8)
+                .build()
+                .toString());
+
+        try (ZipOutputStream outputStream = new ZipOutputStream(response.getOutputStream())) {
+            for (AttachmentResponse attachment : attachments) {
+                ZipEntry entry = new ZipEntry(attachment.getOriginalName());
+                outputStream.putNextEntry(entry);
+                ByteArrayInputStream inputStream = fileManager.read(attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName()));
+                StreamUtils.copy(inputStream, outputStream);
+                outputStream.closeEntry();
+            }
+        }
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @defaultAttachmentPermissionService.isOwner(#id)")

@@ -8,4 +8,6 @@ public interface AttachmentQueryService {
 
     List<AttachmentResponse> getAttachments(String referenceId);
 
+    List<AttachmentResponse> getArticleAttachments(String articleId);
+
 }

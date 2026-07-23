@@ -109,4 +109,15 @@ public class DefaultAttachmentService implements AttachmentService, AttachmentQu
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<AttachmentResponse> getArticleAttachments(String articleId) {
+        logger.debug("게시글 첨부파일 조회: articleId={}", articleId);
+        return attachmentRepository.findAllByReferenceIdIn(Collections.singletonList(articleId))
+                .stream()
+                .filter(Attachment::isAttachment)
+                .map(AttachmentResponse::new)
+                .toList();
+    }
+
 }
