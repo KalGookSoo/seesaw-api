@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Pattern;
 import kr.me.seesaw.api.article.ArticleContext;
 import kr.me.seesaw.api.article.ArticleService;
 import kr.me.seesaw.api.article.dto.*;
+import kr.me.seesaw.api.category.CategoryNotExposedException;
+import kr.me.seesaw.api.category.CategoryService;
+import kr.me.seesaw.api.category.dto.CategoryResponse;
 import kr.me.seesaw.core.support.message.CmsMessageSource;
 import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Validated
@@ -34,6 +36,8 @@ public class ArticleApiController {
     private final ArticleContext articleContext;
 
     private final ArticleService articleService;
+
+    private final CategoryService categoryService;
 
     @GetMapping
     public ResponseEntity<PagedModel<ArticleResponse>> getArticles(
@@ -63,14 +67,40 @@ public class ArticleApiController {
         return ResponseEntity.ok(fixedArticles);
     }
 
-    @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or @categoryPermissionEvaluator.hasPermission(#categoryId, T(org.springframework.security.acls.domain.BasePermission).READ))")
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, ArticleResponse>> getArticle(
+    public ResponseEntity<ArticleDetailResponse> getArticle(
             @PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id,
-            @RequestParam("categoryId") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String categoryId
+            @Valid @ModelAttribute("search") SearchArticleDetailRequest request
     ) {
+        ArticleResponse articleSummary = articleContext.find(id);
+        CategoryResponse articleCategory = categoryService.getCategoryById(articleSummary.getCategoryId());
+        if (!articleCategory.isExposed()) {
+            throw new CategoryNotExposedException(articleCategory.getId());
+        }
+
         ArticleResponse article = articleContext.getArticleAggregation(id);
-        return ResponseEntity.ok(Map.of("article", article));
+        SearchArticlesRequest search = request.toSearchArticlesRequest();
+        search.setCategoryId(article.getCategoryId());
+        if (search.getCategoryType() == null) {
+            search.setCategoryType(articleCategory.getType());
+        }
+
+        String previousArticleId = getExposedArticleId(articleContext.getPreviousArticle(search, article.getCreatedDate()));
+        String nextArticleId = getExposedArticleId(articleContext.getNextArticle(search, article.getCreatedDate()));
+        ArticleDetailResponse response = ArticleDetailResponse.builder()
+                .article(article)
+                .previousArticleId(previousArticleId)
+                .nextArticleId(nextArticleId)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    private String getExposedArticleId(ArticleResponse article) {
+        if (article == null) {
+            return null;
+        }
+        CategoryResponse category = categoryService.getCategoryById(article.getCategoryId());
+        return category.isExposed() ? article.getId() : null;
     }
 
     @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or @categoryPermissionEvaluator.hasPermission(#command.categoryId, T(org.springframework.security.acls.domain.BasePermission).CREATE))")
