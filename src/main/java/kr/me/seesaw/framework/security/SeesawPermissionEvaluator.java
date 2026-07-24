@@ -1,9 +1,8 @@
 package kr.me.seesaw.framework.security;
 
-import kr.me.seesaw.api.role.RoleService;
 import kr.me.seesaw.api.permission.dto.PermissionResponse;
+import kr.me.seesaw.api.role.RoleService;
 import kr.me.seesaw.api.role.dto.RoleResponse;
-import kr.me.seesaw.core.domain.role.RoleName;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,12 +10,10 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @RequiredArgsConstructor
 public class SeesawPermissionEvaluator implements PermissionEvaluator {
@@ -40,12 +37,6 @@ public class SeesawPermissionEvaluator implements PermissionEvaluator {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         if (authorities == null || authorities.isEmpty()) {
             logger.warn("계정에 종속된 권한이 없습니다.");
-            return false;
-        }
-
-        Set<String> authoritySet = AuthorityUtils.authorityListToSet(authorities);
-
-        if (authoritySet.contains(RoleName.ROLE_ANONYMOUS.name())) {
             return false;
         }
 
@@ -100,12 +91,6 @@ public class SeesawPermissionEvaluator implements PermissionEvaluator {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         if (authorities == null || authorities.isEmpty()) {
             logger.warn("계정에 종속된 권한이 없습니다.");
-            return false;
-        }
-
-        Set<String> authoritySet = AuthorityUtils.authorityListToSet(authorities);
-
-        if (authoritySet.contains(RoleName.ROLE_ANONYMOUS.name())) {
             return false;
         }
 
