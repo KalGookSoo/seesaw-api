@@ -37,7 +37,7 @@ public class SignApiController {
      */
     @PostMapping("/oauth2/naver/token")
     public ResponseEntity<JsonWebToken> authenticateNaverAccessToken(@Valid @RequestBody NaverAccessTokenRequest command) {
-        JsonWebToken response = naverAccessTokenService.authenticate(command.accessToken());
+        JsonWebToken response = naverAccessTokenService.authenticate(command.accessToken(), command.siteId());
         return ResponseEntity.ok(response);
     }
 

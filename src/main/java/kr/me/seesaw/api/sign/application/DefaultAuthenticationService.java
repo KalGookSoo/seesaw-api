@@ -109,6 +109,23 @@ public class DefaultAuthenticationService implements AuthenticationService {
     }
 
     /**
+     * 이미 신원이 확인된 사용자명으로, 특정 사이트에서 행사할 수 있는 역할만 담아 JWT 토큰을 발급합니다.
+     *
+     * @param username 사용자명
+     * @param siteId   사이트 식별자
+     * @return JsonWebToken
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public JsonWebToken issueToken(String username, String siteId) {
+        logger.info("토큰 발급 요청: username={}, siteId={}", username, siteId);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
+        UserPrincipal userPrincipal = createUserPrincipal(user, siteId);
+        return jwtTokenProvider.generateTokenInfo(userPrincipal);
+    }
+
+    /**
      * 사용자 정보를 기반으로 UserPrincipal을 생성합니다.
      *
      * @param username 사용자명
@@ -133,6 +150,32 @@ public class DefaultAuthenticationService implements AuthenticationService {
         logger.info("사용자 Principal 생성: username={}", user.getUsername());
         List<String> roleIds = user.getRoleMappings()
                 .stream()
+                .map(RoleMapping::getRole)
+                .map(Role::getId)
+                .toList();
+        List<Role> roles = roleRepository.findAllByIdIn(roleIds);
+        Set<RoleResponse> roleModels = roles.stream()
+                .map(RoleResponse::new)
+                .collect(Collectors.toSet());
+
+        UserResponse userModel = new UserResponse(user);
+        roleModels.forEach(userModel::addRole);
+
+        return new UserPrincipal(userModel);
+    }
+
+    /**
+     * 사용자 정보를 기반으로, 특정 사이트에서 행사할 수 있는 역할만 담은 UserPrincipal을 생성합니다.
+     *
+     * @param user   사용자 정보
+     * @param siteId 사이트 식별자
+     * @return UserPrincipal
+     */
+    private UserPrincipal createUserPrincipal(User user, String siteId) {
+        logger.info("사용자 Principal 생성: username={}, siteId={}", user.getUsername(), siteId);
+        List<String> roleIds = user.getRoleMappings()
+                .stream()
+                .filter(mapping -> mapping.getSite() != null && siteId.equals(mapping.getSite().getId()))
                 .map(RoleMapping::getRole)
                 .map(Role::getId)
                 .toList();

@@ -154,10 +154,10 @@ class SignApiControllerTest {
     @DisplayName("네이버 액세스 토큰 검증 성공 시 200 응답 코드를 반환합니다.")
     void authenticateNaverAccessTokenShouldReturnOk() throws Exception {
         // given
-        NaverAccessTokenRequest command = new NaverAccessTokenRequest("naver-access-token");
+        NaverAccessTokenRequest command = new NaverAccessTokenRequest("naver-access-token", "site-id");
         JsonWebToken expectedToken = new JsonWebToken("access-token", "refresh-token", 3600);
 
-        when(naverAccessTokenService.authenticate("naver-access-token")).thenReturn(expectedToken);
+        when(naverAccessTokenService.authenticate("naver-access-token", "site-id")).thenReturn(expectedToken);
 
         // when & then
         mockMvc.perform(post("/api/oauth2/naver/token")
@@ -174,9 +174,9 @@ class SignApiControllerTest {
     @DisplayName("네이버 액세스 토큰이 유효하지 않으면 401 응답 코드를 반환합니다.")
     void authenticateNaverAccessTokenShouldReturnUnauthorized() throws Exception {
         // given
-        NaverAccessTokenRequest command = new NaverAccessTokenRequest("invalid-token");
+        NaverAccessTokenRequest command = new NaverAccessTokenRequest("invalid-token", "site-id");
 
-        when(naverAccessTokenService.authenticate("invalid-token"))
+        when(naverAccessTokenService.authenticate("invalid-token", "site-id"))
                 .thenThrow(new BadCredentialsException("네이버 액세스 토큰이 유효하지 않습니다."));
 
         // when & then
@@ -190,7 +190,7 @@ class SignApiControllerTest {
     @DisplayName("네이버 액세스 토큰 요청 입력값 검증 실패 시 422 응답 코드를 반환합니다.")
     void authenticateNaverAccessTokenShouldReturnUnprocessableEntity() throws Exception {
         // given
-        NaverAccessTokenRequest command = new NaverAccessTokenRequest(null);
+        NaverAccessTokenRequest command = new NaverAccessTokenRequest(null, "site-id");
 
         // when & then
         mockMvc.perform(post("/api/oauth2/naver/token")

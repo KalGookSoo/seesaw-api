@@ -25,4 +25,12 @@ public interface AuthenticationService {
      * @return JWT 토큰이 포함된 응답
      */
     JsonWebToken issueToken(String username);
+
+    /**
+     * 이미 신원이 확인된 사용자명으로, 특정 사이트에서 행사할 수 있는 역할만 담아 JWT 토큰을 발급
+     * @param username 사용자명
+     * @param siteId 사이트 식별자
+     * @return JWT 토큰이 포함된 응답
+     */
+    JsonWebToken issueToken(String username, String siteId);
 }

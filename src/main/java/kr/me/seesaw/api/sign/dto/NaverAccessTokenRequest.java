@@ -5,7 +5,8 @@ import lombok.Builder;
 
 @Builder
 public record NaverAccessTokenRequest(
-        @NotBlank String accessToken
+        @NotBlank String accessToken,
+        @NotBlank String siteId
 ) {
 
 }
