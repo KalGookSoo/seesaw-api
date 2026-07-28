@@ -95,6 +95,20 @@ public class DefaultAuthenticationService implements AuthenticationService {
     }
 
     /**
+     * 이미 신원이 확인된 사용자명으로 JWT 토큰을 발급합니다.
+     *
+     * @param username 사용자명
+     * @return JsonWebToken
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public JsonWebToken issueToken(String username) {
+        logger.info("토큰 발급 요청: username={}", username);
+        UserPrincipal userPrincipal = loadUserPrincipal(username);
+        return jwtTokenProvider.generateTokenInfo(userPrincipal);
+    }
+
+    /**
      * 사용자 정보를 기반으로 UserPrincipal을 생성합니다.
      *
      * @param username 사용자명

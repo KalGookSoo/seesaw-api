@@ -18,4 +18,11 @@ public interface AuthenticationService {
      * @return 새로운 JWT 토큰이 포함된 응답
      */
     JsonWebToken refreshToken(String refreshToken);
+
+    /**
+     * 이미 신원이 확인된 사용자명으로 JWT 토큰을 발급
+     * @param username 사용자명
+     * @return JWT 토큰이 포함된 응답
+     */
+    JsonWebToken issueToken(String username);
 }

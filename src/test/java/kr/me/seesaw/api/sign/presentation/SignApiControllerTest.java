@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.me.seesaw.api.security.dto.JsonWebToken;
 import kr.me.seesaw.api.security.dto.TokenRefreshRequest;
 import kr.me.seesaw.api.sign.AuthenticationService;
+import kr.me.seesaw.api.sign.NaverAccessTokenService;
+import kr.me.seesaw.api.sign.dto.NaverAccessTokenRequest;
 import kr.me.seesaw.api.sign.dto.SignInRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,9 @@ class SignApiControllerTest {
 
     @MockitoBean
     private AuthenticationService authenticationService;
+
+    @MockitoBean
+    private NaverAccessTokenService naverAccessTokenService;
 
     public SignApiControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
         this.mockMvc = mockMvc;
@@ -139,6 +144,56 @@ class SignApiControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/token/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(command)))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    @DisplayName("네이버 액세스 토큰 검증 성공 시 200 응답 코드를 반환합니다.")
+    void authenticateNaverAccessTokenShouldReturnOk() throws Exception {
+        // given
+        NaverAccessTokenRequest command = new NaverAccessTokenRequest("naver-access-token");
+        JsonWebToken expectedToken = new JsonWebToken("access-token", "refresh-token", 3600);
+
+        when(naverAccessTokenService.authenticate("naver-access-token")).thenReturn(expectedToken);
+
+        // when & then
+        mockMvc.perform(post("/api/oauth2/naver/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(command)))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"))
+                .andExpect(jsonPath("$.expiresIn").value(3600));
+    }
+
+    @Test
+    @DisplayName("네이버 액세스 토큰이 유효하지 않으면 401 응답 코드를 반환합니다.")
+    void authenticateNaverAccessTokenShouldReturnUnauthorized() throws Exception {
+        // given
+        NaverAccessTokenRequest command = new NaverAccessTokenRequest("invalid-token");
+
+        when(naverAccessTokenService.authenticate("invalid-token"))
+                .thenThrow(new BadCredentialsException("네이버 액세스 토큰이 유효하지 않습니다."));
+
+        // when & then
+        mockMvc.perform(post("/api/oauth2/naver/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(command)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("네이버 액세스 토큰 요청 입력값 검증 실패 시 422 응답 코드를 반환합니다.")
+    void authenticateNaverAccessTokenShouldReturnUnprocessableEntity() throws Exception {
+        // given
+        NaverAccessTokenRequest command = new NaverAccessTokenRequest(null);
+
+        // when & then
+        mockMvc.perform(post("/api/oauth2/naver/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
