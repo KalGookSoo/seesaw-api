@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -58,57 +59,77 @@ public class AttachmentApiController {
     ) throws IOException {
         AttachmentResponse attachment = attachmentService.getAttachmentById(id);
         String absolutePath = attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName());
-        String fileName = attachment.getOriginalName();
-        String contentType = attachment.getMimeType();
+        HttpHeaders headers = buildAttachmentHeaders(attachment);
 
-        HttpHeaders headers = new HttpHeaders();
+        Optional<HttpRange> range = resolveRequestedRange(rangeHeader);
+        if (range.isPresent()) {
+            return partialContentResponse(attachment, absolutePath, range.get(), headers);
+        }
+        return fullContentResponse(absolutePath, headers);
+    }
+
+    private HttpHeaders buildAttachmentHeaders(AttachmentResponse attachment) {
+        final HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.ACCEPT_RANGES, "bytes");
 
-        if (attachment.isPreviewable()
-                && !contentType.startsWith("image/")
-                && !contentType.startsWith("video/")
-                && !contentType.startsWith("audio/")
-                && !MediaType.APPLICATION_PDF_VALUE.equals(contentType)) {
+        final boolean sandboxed = needsContentSandbox(attachment);
+        if (sandboxed) {
             headers.add("Content-Security-Policy", "sandbox; default-src 'none'; style-src 'unsafe-inline';");
             headers.add("X-Content-Type-Options", "nosniff");
             headers.add("X-XSS-Protection", "1; mode=block");
-
-            if (!MediaType.TEXT_HTML_VALUE.equals(contentType)) {
-                contentType = MediaType.TEXT_PLAIN_VALUE;
-            }
         }
+        headers.add(HttpHeaders.CONTENT_TYPE, resolveContentType(attachment, sandboxed));
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, buildContentDisposition(attachment).toString());
+        return headers;
+    }
 
-        headers.add(HttpHeaders.CONTENT_TYPE, contentType);
+    private boolean needsContentSandbox(AttachmentResponse attachment) {
+        return attachment.isPreviewable() && !attachment.isRenderableMedia();
+    }
 
+    private String resolveContentType(AttachmentResponse attachment, boolean sandboxed) {
+        final String contentType = attachment.getMimeType();
+        if (!sandboxed) {
+            return contentType;
+        }
+        return MediaType.TEXT_HTML_VALUE.equals(contentType) ? contentType : MediaType.TEXT_PLAIN_VALUE;
+    }
+
+    private ContentDisposition buildContentDisposition(AttachmentResponse attachment) {
         ContentDisposition.Builder builder = attachment.isPreviewable() ? ContentDisposition.inline() : ContentDisposition.attachment();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, builder
-                .filename(fileName, StandardCharsets.UTF_8)
-                .build()
-                .toString());
+        return builder.filename(attachment.getOriginalName(), StandardCharsets.UTF_8).build();
+    }
 
-        List<HttpRange> ranges = List.of();
-        if (rangeHeader != null) {
-            try {
-                ranges = HttpRange.parseRanges(rangeHeader);
-            } catch (IllegalArgumentException ignored) {
-                // 잘못된 Range 헤더는 무시하고 전체 응답으로 대체한다(RFC 7233).
-            }
+    private Optional<HttpRange> resolveRequestedRange(String rangeHeader) {
+        if (rangeHeader == null) {
+            return Optional.empty();
         }
-
-        if (!ranges.isEmpty()) {
-            long fileSize = attachment.getSize();
-            HttpRange range = ranges.get(0);
-            long start = range.getRangeStart(fileSize);
-            long end = range.getRangeEnd(fileSize);
-            long rangeLength = end - start + 1;
-
-            InputStreamResource resource = new InputStreamResource(fileManager.read(absolutePath, start, rangeLength));
-            headers.add(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileSize);
-            headers.setContentLength(rangeLength);
-            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).headers(headers).body(resource);
+        try {
+            List<HttpRange> ranges = HttpRange.parseRanges(rangeHeader);
+            return ranges.isEmpty() ? Optional.empty() : Optional.of(ranges.get(0));
+        } catch (IllegalArgumentException ignored) {
+            // 잘못된 Range 헤더는 무시하고 전체 응답으로 대체한다(RFC 7233).
+            return Optional.empty();
         }
+    }
 
-        InputStreamResource resource = new InputStreamResource(fileManager.read(absolutePath));
+    private ResponseEntity<Resource> partialContentResponse(
+            AttachmentResponse attachment, String absolutePath, HttpRange range, HttpHeaders headers
+    ) throws IOException {
+        long fileSize = attachment.getSize();
+        long start = range.getRangeStart(fileSize);
+        long end = range.getRangeEnd(fileSize);
+        long rangeLength = end - start + 1;
+
+        headers.add(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileSize);
+        headers.setContentLength(rangeLength);
+
+        Resource resource = new InputStreamResource(fileManager.read(absolutePath, start, rangeLength));
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).headers(headers).body(resource);
+    }
+
+    private ResponseEntity<Resource> fullContentResponse(String absolutePath, HttpHeaders headers) throws IOException {
+        Resource resource = new InputStreamResource(fileManager.read(absolutePath));
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(resource);
     }
 

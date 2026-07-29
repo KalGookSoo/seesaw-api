@@ -51,13 +51,22 @@ public final class AttachmentResponse extends BaseResponse {
         return Attachment.Type.ATTACHMENT.getPath().equals(pathName);
     }
 
-    public boolean isPreviewable() {
+    /**
+     * 브라우저가 실제 MIME 타입 그대로 렌더링해도 안전한 미디어(이미지/동영상/오디오/PDF)인지 여부.
+     * 텍스트/JSON/XML/JavaScript 같은, 그대로 렌더링하면 스크립트 주입 위험이 있는 타입은 포함하지 않는다.
+     */
+    public boolean isRenderableMedia() {
         if (mimeType == null) return false;
         return mimeType.startsWith("image/") ||
                mimeType.startsWith("video/") ||
                mimeType.startsWith("audio/") ||
+               "application/pdf".equals(mimeType);
+    }
+
+    public boolean isPreviewable() {
+        if (mimeType == null) return false;
+        return isRenderableMedia() ||
                mimeType.startsWith("text/") ||
-               "application/pdf".equals(mimeType) ||
                "application/json".equals(mimeType) ||
                "application/xml".equals(mimeType) ||
                "application/javascript".equals(mimeType);
