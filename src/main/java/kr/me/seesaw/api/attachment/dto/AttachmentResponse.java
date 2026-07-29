@@ -53,8 +53,10 @@ public final class AttachmentResponse extends BaseResponse {
 
     public boolean isPreviewable() {
         if (mimeType == null) return false;
-        return mimeType.startsWith("image/") || 
-               mimeType.startsWith("text/") || 
+        return mimeType.startsWith("image/") ||
+               mimeType.startsWith("video/") ||
+               mimeType.startsWith("audio/") ||
+               mimeType.startsWith("text/") ||
                "application/pdf".equals(mimeType) ||
                "application/json".equals(mimeType) ||
                "application/xml".equals(mimeType) ||

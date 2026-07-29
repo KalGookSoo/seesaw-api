@@ -13,6 +13,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRange;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,16 +53,22 @@ public class AttachmentApiController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Resource> getAttachment(
-            @PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id
+            @PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id,
+            @RequestHeader(value = HttpHeaders.RANGE, required = false) String rangeHeader
     ) throws IOException {
         AttachmentResponse attachment = attachmentService.getAttachmentById(id);
-        ByteArrayInputStream stream = fileManager.read(attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName()));
-        InputStreamResource resource = new InputStreamResource(stream);
+        String absolutePath = attachmentService.getAbsolutePath(attachment.getPathName(), attachment.getName());
         String fileName = attachment.getOriginalName();
-        HttpHeaders headers = new HttpHeaders();
         String contentType = attachment.getMimeType();
 
-        if (attachment.isPreviewable() && !contentType.startsWith("image/") && !MediaType.APPLICATION_PDF_VALUE.equals(contentType)) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.ACCEPT_RANGES, "bytes");
+
+        if (attachment.isPreviewable()
+                && !contentType.startsWith("image/")
+                && !contentType.startsWith("video/")
+                && !contentType.startsWith("audio/")
+                && !MediaType.APPLICATION_PDF_VALUE.equals(contentType)) {
             headers.add("Content-Security-Policy", "sandbox; default-src 'none'; style-src 'unsafe-inline';");
             headers.add("X-Content-Type-Options", "nosniff");
             headers.add("X-XSS-Protection", "1; mode=block");
@@ -78,6 +85,30 @@ public class AttachmentApiController {
                 .filename(fileName, StandardCharsets.UTF_8)
                 .build()
                 .toString());
+
+        List<HttpRange> ranges = List.of();
+        if (rangeHeader != null) {
+            try {
+                ranges = HttpRange.parseRanges(rangeHeader);
+            } catch (IllegalArgumentException ignored) {
+                // 잘못된 Range 헤더는 무시하고 전체 응답으로 대체한다(RFC 7233).
+            }
+        }
+
+        if (!ranges.isEmpty()) {
+            long fileSize = attachment.getSize();
+            HttpRange range = ranges.get(0);
+            long start = range.getRangeStart(fileSize);
+            long end = range.getRangeEnd(fileSize);
+            long rangeLength = end - start + 1;
+
+            InputStreamResource resource = new InputStreamResource(fileManager.read(absolutePath, start, rangeLength));
+            headers.add(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileSize);
+            headers.setContentLength(rangeLength);
+            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).headers(headers).body(resource);
+        }
+
+        InputStreamResource resource = new InputStreamResource(fileManager.read(absolutePath));
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(resource);
     }
 
