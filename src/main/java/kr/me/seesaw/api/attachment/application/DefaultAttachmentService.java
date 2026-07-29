@@ -53,7 +53,7 @@ public class DefaultAttachmentService implements AttachmentService, AttachmentQu
         attachment.setMimeType(command.getMultipartFile().getContentType());
         attachment.setSize(command.getMultipartFile().getSize());
         attachment.setOriginalName(command.getMultipartFile().getOriginalFilename());
-        attachment.setName(java.util.UUID.randomUUID() + "_" + attachment.getOriginalName());
+        attachment.generateName(attachment.getOriginalName());
 
         byte[] bytes;
         try {
