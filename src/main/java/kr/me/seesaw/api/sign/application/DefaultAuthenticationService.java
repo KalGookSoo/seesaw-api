@@ -5,12 +5,14 @@ import kr.me.seesaw.api.sign.AuthenticationService;
 import kr.me.seesaw.core.domain.role.Role;
 import kr.me.seesaw.core.domain.mapping.RoleMapping;
 import kr.me.seesaw.core.domain.user.User;
+import kr.me.seesaw.api.security.dto.AuthenticatedUserResponse;
 import kr.me.seesaw.api.security.dto.JsonWebToken;
 import kr.me.seesaw.api.role.dto.RoleResponse;
 import kr.me.seesaw.api.user.dto.UserResponse;
 import kr.me.seesaw.framework.security.UserPrincipal;
 import kr.me.seesaw.core.domain.role.RoleRepository;
 import kr.me.seesaw.core.domain.user.UserRepository;
+import kr.me.seesaw.core.support.authentication.PrincipalProvider;
 import kr.me.seesaw.framework.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -19,11 +21,13 @@ import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,6 +45,8 @@ public class DefaultAuthenticationService implements AuthenticationService {
     private final JwtTokenProvider jwtTokenProvider;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final PrincipalProvider principalProvider;
 
     /**
      * 사용자 로그인을 처리합니다.
@@ -123,6 +129,32 @@ public class DefaultAuthenticationService implements AuthenticationService {
                 .orElseThrow(() -> new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
         UserPrincipal userPrincipal = createUserPrincipal(user, siteId);
         return jwtTokenProvider.generateTokenInfo(userPrincipal);
+    }
+
+    /**
+     * 현재 인증된 사용자 본인의 정보를 조회합니다.
+     *
+     * @return 계정 식별자/사용자명/권한이 담긴 응답
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public AuthenticatedUserResponse getCurrentUser() {
+        String username = principalProvider.getAuthentication().getName();
+        logger.info("현재 사용자 조회: username={}", username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("해당 계정이 존재하지 않습니다."));
+
+        List<String> authorities = principalProvider.getAuthentication().getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        return AuthenticatedUserResponse.builder()
+                .userId(user.getId())
+                .username(username)
+                .authorities(authorities)
+                .build();
     }
 
     /**

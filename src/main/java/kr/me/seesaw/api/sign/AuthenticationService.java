@@ -1,6 +1,7 @@
 package kr.me.seesaw.api.sign;
 
 import kr.me.seesaw.api.sign.dto.SignInRequest;
+import kr.me.seesaw.api.security.dto.AuthenticatedUserResponse;
 import kr.me.seesaw.api.security.dto.JsonWebToken;
 
 public interface AuthenticationService {
@@ -33,4 +34,10 @@ public interface AuthenticationService {
      * @return JWT 토큰이 포함된 응답
      */
     JsonWebToken issueToken(String username, String siteId);
+
+    /**
+     * 현재 인증된 사용자 본인의 정보를 조회합니다.
+     * @return 계정 식별자/사용자명/권한이 담긴 응답
+     */
+    AuthenticatedUserResponse getCurrentUser();
 }

@@ -9,6 +9,7 @@ import kr.me.seesaw.core.domain.site.Site;
 import kr.me.seesaw.core.domain.user.Email;
 import kr.me.seesaw.core.domain.user.User;
 import kr.me.seesaw.core.domain.user.UserRepository;
+import kr.me.seesaw.core.support.authentication.PrincipalProvider;
 import kr.me.seesaw.framework.security.JwtTokenProvider;
 import kr.me.seesaw.framework.security.UserPrincipal;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,9 @@ class DefaultAuthenticationServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private PrincipalProvider principalProvider;
 
     @Test
     void issueTokenWithSiteIdShouldOnlyIncludeRoleForThatSite() {
@@ -96,7 +100,7 @@ class DefaultAuthenticationServiceTest {
     }
 
     private DefaultAuthenticationService createService() {
-        return new DefaultAuthenticationService(userRepository, roleRepository, jwtTokenProvider, passwordEncoder);
+        return new DefaultAuthenticationService(userRepository, roleRepository, jwtTokenProvider, passwordEncoder, principalProvider);
     }
 
 }

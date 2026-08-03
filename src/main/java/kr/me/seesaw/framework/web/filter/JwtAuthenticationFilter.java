@@ -34,7 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "SEESAW_ACCESS_TOKEN";
+    public static final String ACCESS_TOKEN_COOKIE_NAME = "SEESAW_ACCESS_TOKEN";
+
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "SEESAW_REFRESH_TOKEN";
 
     private final JwtTokenProvider jwtTokenProvider;
 
