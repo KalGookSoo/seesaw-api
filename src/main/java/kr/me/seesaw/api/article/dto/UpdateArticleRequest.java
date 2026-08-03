@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 @Schema(description = "게시글 수정 커맨드")
@@ -20,6 +21,10 @@ import java.util.function.Predicate;
 public class UpdateArticleRequest implements Serializable {
 
     private static final long MAX_FILE_SIZE = 50L * 1024L * 1024L;
+
+    private static final long MAX_VIDEO_FILE_SIZE = 200L * 1024L * 1024L;
+
+    private static final Set<String> ALLOWED_VIDEO_MIME_TYPES = Set.of("video/mp4", "video/webm");
 
     @Parameter(description = "카테고리 식별자", required = true)
     @Schema(description = "카테고리 식별자", example = "카테고리 식별자")
@@ -61,6 +66,10 @@ public class UpdateArticleRequest implements Serializable {
     @Schema(description = "이미지", example = "이미지")
     private List<MultipartFile> inlineImages = new ArrayList<>();
 
+    @Parameter(description = "동영상")
+    @Schema(description = "동영상", example = "동영상")
+    private List<MultipartFile> inlineVideos = new ArrayList<>();
+
     public List<MultipartFile> getMultipartFiles() {
         return multipartFiles.stream()
                 .filter(Predicate.not(MultipartFile::isEmpty))
@@ -69,6 +78,12 @@ public class UpdateArticleRequest implements Serializable {
 
     public List<MultipartFile> getInlineImages() {
         return inlineImages.stream()
+                .filter(Predicate.not(MultipartFile::isEmpty))
+                .toList();
+    }
+
+    public List<MultipartFile> getInlineVideos() {
+        return inlineVideos.stream()
                 .filter(Predicate.not(MultipartFile::isEmpty))
                 .toList();
     }
@@ -84,6 +99,7 @@ public class UpdateArticleRequest implements Serializable {
                 ", content='" + truncateContent(content) + '\'' +
                 ", multipartFiles.size=" + size(multipartFiles) +
                 ", inlineImages.size=" + size(inlineImages) +
+                ", inlineVideos.size=" + size(inlineVideos) +
                 '}';
     }
 
@@ -95,6 +111,18 @@ public class UpdateArticleRequest implements Serializable {
     @AssertTrue(message = "이미지는 최대 50MB까지 업로드할 수 있습니다.")
     public boolean isInlineImagesSizeValid() {
         return isMultipartFilesSizeValid(inlineImages);
+    }
+
+    @AssertTrue(message = "동영상은 최대 200MB까지 업로드할 수 있습니다.")
+    public boolean isInlineVideosSizeValid() {
+        return inlineVideos == null || inlineVideos.stream()
+                .allMatch(multipartFile -> multipartFile == null || multipartFile.isEmpty() || multipartFile.getSize() <= MAX_VIDEO_FILE_SIZE);
+    }
+
+    @AssertTrue(message = "동영상은 mp4, webm 포맷만 업로드할 수 있습니다.")
+    public boolean isInlineVideosFormatValid() {
+        return inlineVideos == null || inlineVideos.stream()
+                .allMatch(multipartFile -> multipartFile == null || multipartFile.isEmpty() || ALLOWED_VIDEO_MIME_TYPES.contains(multipartFile.getContentType()));
     }
 
     private boolean isMultipartFilesSizeValid(List<MultipartFile> multipartFiles) {

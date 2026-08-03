@@ -186,7 +186,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             Attachment attachment = new Attachment();
             attachment.setReferenceId(savedArticle.getId());
             attachment.setOriginalName(multipartFile.getOriginalFilename());
-            attachment.setName(UUID.randomUUID() + "_" + attachment.getOriginalName());
+            attachment.setName(attachment.generateName(attachment.getOriginalName()));
             attachment.setPathName(Attachment.Type.INLINE_IMAGE.getPath());
             attachment.setMimeType(multipartFile.getContentType());
             attachment.setSize(multipartFile.getSize());
@@ -203,12 +203,35 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             }
         }
 
+        Iterator<Element> videoIterator = document.select("video[src*=\"blob:\"]").iterator();
+
+        for (MultipartFile multipartFile : command.getInlineVideos()) {
+            Attachment attachment = new Attachment();
+            attachment.setReferenceId(savedArticle.getId());
+            attachment.setOriginalName(multipartFile.getOriginalFilename());
+            attachment.setName(attachment.generateName(attachment.getOriginalName()));
+            attachment.setPathName(Attachment.Type.INLINE_VIDEO.getPath());
+            attachment.setMimeType(multipartFile.getContentType());
+            attachment.setSize(multipartFile.getSize());
+
+            fileManager.write(seesawApiProperties.getFilepath() + attachment.getPathName() + File.separator + attachment.getName(), multipartFile.getBytes());
+            attachmentRepository.save(attachment);
+
+            String url = "/api/attachments/" + attachment.getId();
+
+            // video의 src를 첨부파일을 생성 후 "/api/attachments/{id}"로 치환한다.
+            if (videoIterator.hasNext()) {
+                Element element = videoIterator.next();
+                element.attr("src", url);
+            }
+        }
+
         // 첨부파일
         for (MultipartFile multipartFile : command.getMultipartFiles()) {
             Attachment attachment = new Attachment();
             attachment.setReferenceId(savedArticle.getId());
             attachment.setOriginalName(multipartFile.getOriginalFilename());
-            attachment.setName(UUID.randomUUID() + "_" + attachment.getOriginalName());
+            attachment.setName(attachment.generateName(attachment.getOriginalName()));
             attachment.setPathName(Attachment.Type.ATTACHMENT.getPath());
             attachment.setMimeType(multipartFile.getContentType());
             attachment.setSize(multipartFile.getSize());
@@ -217,8 +240,10 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             attachmentRepository.save(attachment);
         }
 
-        // 인라인이미지 링크를 첨부파일 API로 치환한 본문으로 재할당한다
-        Safelist safelist = Safelist.relaxed().preserveRelativeLinks(true);
+        // 인라인이미지/동영상 링크를 첨부파일 API로 치환한 본문으로 재할당한다
+        Safelist safelist = Safelist.relaxed().preserveRelativeLinks(true)
+                .addTags("video")
+                .addAttributes("video", "src", "controls", "aria-label");
         article.setContent(Jsoup.clean(document.body().html(), "http://localhost", safelist));
 
         ArticleResponse model = new ArticleResponse(articleRepository.save(article));
@@ -234,11 +259,13 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
 
         Document existingContent = Jsoup.parse(article.getContent());
         Elements existingImages = existingContent.select("img[src*=\"/api/attachments/\"]");
+        Elements existingVideos = existingContent.select("video[src*=\"/api/attachments/\"]");
 
         List<String> deletedAttachmentIds = new ArrayList<>();
 
         Document newContent = Jsoup.parse(command.getContent());
         Elements remainingImages = newContent.select("img[src*=\"/api/attachments/\"]");
+        Elements remainingVideos = newContent.select("video[src*=\"/api/attachments/\"]");
 
         // src는 "/"로 스플릿하여 마지막 요소를 uuid4 패턴의 문자열이다.
         for (Element existingImage : existingImages) {
@@ -250,7 +277,16 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             }
         }
 
-        // 수정하면서 삭제한 이미지를 삭제
+        for (Element existingVideo : existingVideos) {
+            String existingSrc = existingVideo.attr("src");
+            boolean isPresentInNewVideos = remainingVideos.stream()
+                    .anyMatch(newVideo -> newVideo.attr("src").equals(existingSrc));
+            if (!isPresentInNewVideos) {
+                deletedAttachmentIds.add(existingSrc.substring(existingSrc.lastIndexOf("/") + 1));
+            }
+        }
+
+        // 수정하면서 삭제한 이미지/동영상을 삭제
         List<Attachment> attachments = attachmentRepository.findAllByIdIn(deletedAttachmentIds);
         attachmentRepository.deleteAllInBatch(attachments);
         attachments.stream()
@@ -263,7 +299,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             Attachment attachment = new Attachment();
             attachment.setReferenceId(article.getId());
             attachment.setOriginalName(multipartFile.getOriginalFilename());
-            attachment.setName(UUID.randomUUID() + "_" + attachment.getOriginalName());
+            attachment.setName(attachment.generateName(attachment.getOriginalName()));
             attachment.setPathName(Attachment.Type.INLINE_IMAGE.getPath());
             attachment.setMimeType(multipartFile.getContentType());
             attachment.setSize(multipartFile.getSize());
@@ -280,7 +316,32 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             }
         }
 
-        Safelist safelist = Safelist.relaxed().preserveRelativeLinks(true);
+        Iterator<Element> videoIterator = newContent.select("video[src*=\"blob:\"]").iterator();
+
+        for (MultipartFile multipartFile : command.getInlineVideos()) {
+            Attachment attachment = new Attachment();
+            attachment.setReferenceId(article.getId());
+            attachment.setOriginalName(multipartFile.getOriginalFilename());
+            attachment.setName(attachment.generateName(attachment.getOriginalName()));
+            attachment.setPathName(Attachment.Type.INLINE_VIDEO.getPath());
+            attachment.setMimeType(multipartFile.getContentType());
+            attachment.setSize(multipartFile.getSize());
+
+            fileManager.write(seesawApiProperties.getFilepath() + attachment.getPathName() + File.separator + attachment.getName(), multipartFile.getBytes());
+            attachmentRepository.save(attachment);
+
+            String url = "/api/attachments/" + attachment.getId();
+
+            // video의 src를 첨부파일을 생성 후 "/api/attachments/{id}"로 치환한다.
+            if (videoIterator.hasNext()) {
+                Element element = videoIterator.next();
+                element.attr("src", url);
+            }
+        }
+
+        Safelist safelist = Safelist.relaxed().preserveRelativeLinks(true)
+                .addTags("video")
+                .addAttributes("video", "src", "controls", "aria-label");
         command.setContent(Jsoup.clean(newContent.body().html(), "http://localhost", safelist));
 
         Category category = new Category();
@@ -297,7 +358,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             Attachment attachment = new Attachment();
             attachment.setReferenceId(article.getId());
             attachment.setOriginalName(multipartFile.getOriginalFilename());
-            attachment.setName(UUID.randomUUID() + "_" + attachment.getOriginalName());
+            attachment.setName(attachment.generateName(attachment.getOriginalName()));
             attachment.setPathName(Attachment.Type.ATTACHMENT.getPath());
             attachment.setMimeType(multipartFile.getContentType());
             attachment.setSize(multipartFile.getSize());
