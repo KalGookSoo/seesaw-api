@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import kr.me.seesaw.api.category.CategoryNotExposedException;
+import kr.me.seesaw.api.rolemapping.RoleMappingAdminRemovalNotAllowedException;
 import kr.me.seesaw.core.support.message.CmsMessageSource;
 import kr.me.seesaw.core.support.validation.ValidationError;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,14 @@ public class SeesawApiControllerAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<Map<String, String>> handleCategoryNotExposedException(CategoryNotExposedException ex) {
         logger.warn(ex.getMessage());
         String message = messageSource.getMessage("error.category.not.exposed");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(RoleMappingAdminRemovalNotAllowedException.class)
+    public ResponseEntity<Map<String, String>> handleRoleMappingAdminRemovalNotAllowedException(RoleMappingAdminRemovalNotAllowedException ex) {
+        logger.warn(ex.getMessage());
+        String message = messageSource.getMessage("error.rolemapping.admin.removal.not.allowed");
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("message", message));
     }
