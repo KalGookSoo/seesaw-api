@@ -1,7 +1,6 @@
 package kr.me.seesaw.api.sign.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.Cookie;
 import kr.me.seesaw.api.security.dto.AuthenticatedUserResponse;
 import kr.me.seesaw.api.security.dto.JsonWebToken;
 import kr.me.seesaw.api.security.dto.TokenRefreshRequest;
@@ -22,7 +21,6 @@ import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import java.util.List;
@@ -33,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -53,23 +50,9 @@ class SignApiControllerTest {
     @MockitoBean
     private NaverAccessTokenService naverAccessTokenService;
 
-    private static final String CSRF_TOKEN = "test-csrf-token";
-
-    // CookieCsrfTokenRepository의 기본 네이밍(비공개 상수라 리터럴로 둔다)
-    private static final String CSRF_COOKIE_NAME = "XSRF-TOKEN";
-    private static final String CSRF_HEADER_NAME = "X-XSRF-TOKEN";
-
     public SignApiControllerTest(MockMvc mockMvc, ObjectMapper objectMapper) {
         this.mockMvc = mockMvc;
         this.objectMapper = objectMapper;
-    }
-
-    // Spring Security의 CookieCsrfTokenRepository는 더블 서브밋 쿠키 방식이라, POST 요청에는
-    // 쿠키(XSRF-TOKEN)와 헤더(X-XSRF-TOKEN)에 동일한 CSRF 토큰을 함께 실어야 한다.
-    private MockHttpServletRequestBuilder postWithCsrf(String uri) {
-        return post(uri)
-                .cookie(new Cookie(CSRF_COOKIE_NAME, CSRF_TOKEN))
-                .header(CSRF_HEADER_NAME, CSRF_TOKEN);
     }
 
     @Test
@@ -83,7 +66,7 @@ class SignApiControllerTest {
         when(authenticationService.authenticate(any(SignInRequest.class))).thenReturn(expectedToken);
 
         // when & then
-        MvcResult result = mockMvc.perform(postWithCsrf("/api/sign-in")
+        MvcResult result = mockMvc.perform(post("/api/sign-in")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
@@ -100,40 +83,10 @@ class SignApiControllerTest {
     }
 
     @Test
-    @DisplayName("CSRF 토큰 없이 요청하면 403 응답 코드를 반환합니다.")
-    void signInWithoutCsrfTokenShouldReturnForbidden() throws Exception {
-        // given
-        SignInRequest command = new SignInRequest("testuser", "password");
-
-        // when & then
-        mockMvc.perform(post("/api/sign-in")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(command)))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("CSRF 쿠키와 헤더 값이 다르면 403 응답 코드를 반환합니다.")
-    void signInWithMismatchedCsrfTokenShouldReturnForbidden() throws Exception {
-        // given
-        SignInRequest command = new SignInRequest("testuser", "password");
-
-        // when & then
-        mockMvc.perform(post("/api/sign-in")
-                        .cookie(new Cookie(CSRF_COOKIE_NAME, CSRF_TOKEN))
-                        .header(CSRF_HEADER_NAME, "다른-토큰")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(command)))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
     @DisplayName("로그아웃 요청 성공 시 인증 쿠키를 만료시킵니다.")
     void signOutShouldClearAuthCookies() throws Exception {
         // when & then
-        MvcResult result = mockMvc.perform(postWithCsrf("/api/sign-out"))
+        MvcResult result = mockMvc.perform(post("/api/sign-out"))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isNoContent())
                 .andReturn();
@@ -184,7 +137,7 @@ class SignApiControllerTest {
                 .thenThrow(new BadCredentialsException("사용자명 또는 패스워드가 일치하지 않습니다"));
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/sign-in")
+        mockMvc.perform(post("/api/sign-in")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
@@ -198,7 +151,7 @@ class SignApiControllerTest {
         SignInRequest command = new SignInRequest(null, null);
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/sign-in")
+        mockMvc.perform(post("/api/sign-in")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
@@ -215,7 +168,7 @@ class SignApiControllerTest {
         when(authenticationService.refreshToken(anyString())).thenReturn(expectedToken);
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/token/refresh")
+        mockMvc.perform(post("/api/token/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
@@ -235,7 +188,7 @@ class SignApiControllerTest {
                 .thenThrow(new BadCredentialsException("유효하지 않은 리프레시 토큰입니다"));
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/token/refresh")
+        mockMvc.perform(post("/api/token/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isUnauthorized());
@@ -249,7 +202,7 @@ class SignApiControllerTest {
         // refreshToken 필드를 비워둠
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/token/refresh")
+        mockMvc.perform(post("/api/token/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
@@ -266,7 +219,7 @@ class SignApiControllerTest {
         when(naverAccessTokenService.authenticate("naver-access-token", "site-id")).thenReturn(expectedToken);
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/oauth2/naver/token")
+        mockMvc.perform(post("/api/oauth2/naver/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
@@ -286,7 +239,7 @@ class SignApiControllerTest {
                 .thenThrow(new BadCredentialsException("네이버 액세스 토큰이 유효하지 않습니다."));
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/oauth2/naver/token")
+        mockMvc.perform(post("/api/oauth2/naver/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isUnauthorized());
@@ -299,7 +252,7 @@ class SignApiControllerTest {
         NaverAccessTokenRequest command = new NaverAccessTokenRequest(null, "site-id");
 
         // when & then
-        mockMvc.perform(postWithCsrf("/api/oauth2/naver/token")
+        mockMvc.perform(post("/api/oauth2/naver/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andDo(MockMvcResultHandlers.print())
