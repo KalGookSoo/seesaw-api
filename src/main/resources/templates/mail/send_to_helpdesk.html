@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body style="margin:0;background:#f3f4f2;color:#202321;font-family:Arial,sans-serif;">
+<main style="max-width:680px;margin:32px auto;padding:32px;background:#fff;border:1px solid #d7dad6;">
+  <p style="margin:0 0 12px;color:#686e68;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">SEESAW INQUIRY</p>
+  <h1 style="margin:0 0 24px;font-size:24px;line-height:1.4;" th:text="${title}">문의 제목</h1>
+  <dl style="margin:0 0 24px;padding:16px;background:#f3f4f2;line-height:1.8;">
+    <dt style="color:#686e68;font-size:12px;">문의자</dt>
+    <dd style="margin:0 0 12px;" th:text="${from}">문의자 이메일</dd>
+    <dt style="color:#686e68;font-size:12px;">사이트</dt>
+    <dd style="margin:0;" th:text="${siteName}">사이트 이름</dd>
+  </dl>
+  <h2 style="font-size:14px;">문의 내용</h2>
+  <div style="padding:16px;border-left:3px solid #202321;background:#f3f4f2;white-space:pre-wrap;" th:text="${content}">문의 내용</div>
+</main>
+</body>
+</html>

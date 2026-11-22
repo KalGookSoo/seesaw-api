@@ -153,6 +153,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
         return AuthenticatedUserResponse.builder()
                 .userId(user.getId())
                 .username(username)
+                .email(user.getEmail().toString())
                 .authorities(authorities)
                 .build();
     }

@@ -1,5 +1,6 @@
 dependencies {
     api project(':seesaw-core:calendar')
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation('org.springframework.security:spring-security-web')
     implementation('org.springframework.security:spring-security-config')
 
