@@ -36,6 +36,14 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
+
+  # 로컬에서는 ConsoleMailService가 사용되며, MailProperties 자동 구성을 위한 기본값만 제공합니다.
+  mail:
+    host: localhost
+    port: 25
+    username: console@localhost
+    protocol: smtp
+    default-encoding: UTF-8
   
   # HTML 비표준 HTTP method(ex - PUT, DELETE ..)를 활성화 합니다.
   mvc:
@@ -83,6 +91,10 @@ management:
   endpoint:
     health:
       show-details: always
+  # 로컬에서는 ConsoleMailService를 사용하므로 실제 SMTP 연결 health check를 수행하지 않습니다.
+  health:
+    mail:
+      enabled: false
   info:
     env:
       enabled: true
