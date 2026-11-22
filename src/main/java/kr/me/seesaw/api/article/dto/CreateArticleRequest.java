@@ -23,7 +23,7 @@ public class CreateArticleRequest {
 
     private static final long MAX_VIDEO_FILE_SIZE = 200L * 1024L * 1024L;
 
-    private static final Set<String> ALLOWED_VIDEO_MIME_TYPES = Set.of("video/mp4", "video/webm");
+    private static final Set<String> ALLOWED_VIDEO_MIME_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
 
     @Parameter(description = "카테고리 식별자", required = true)
     @Schema(description = "카테고리 식별자", example = "카테고리 식별자")
@@ -118,7 +118,7 @@ public class CreateArticleRequest {
                 .allMatch(multipartFile -> multipartFile == null || multipartFile.isEmpty() || multipartFile.getSize() <= MAX_VIDEO_FILE_SIZE);
     }
 
-    @AssertTrue(message = "동영상은 mp4, webm 포맷만 업로드할 수 있습니다.")
+    @AssertTrue(message = "동영상은 mp4, webm, mov 포맷만 업로드할 수 있습니다.")
     public boolean isInlineVideosFormatValid() {
         return inlineVideos == null || inlineVideos.stream()
                 .allMatch(multipartFile -> multipartFile == null || multipartFile.isEmpty() || ALLOWED_VIDEO_MIME_TYPES.contains(multipartFile.getContentType()));
