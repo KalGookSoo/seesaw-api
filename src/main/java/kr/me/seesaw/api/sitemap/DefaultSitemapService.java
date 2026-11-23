@@ -110,8 +110,6 @@ public class DefaultSitemapService implements SitemapService {
     private String toArticleUrl(String origin, ArticleResponse article, CategoryResponse category) {
         return UriComponentsBuilder.fromUriString(origin)
                 .path("/articles/{articleId}")
-                .queryParam("categoryType", category.getType())
-                .queryParam("categoryId", category.getId())
                 .buildAndExpand(article.getId())
                 .toUriString();
     }

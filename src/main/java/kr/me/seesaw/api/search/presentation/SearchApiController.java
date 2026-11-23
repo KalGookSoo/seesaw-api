@@ -28,8 +28,9 @@ public class SearchApiController {
     public ResponseEntity<SearchResponse> search(
             @RequestParam @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String siteId,
             @RequestParam @NotBlank @Size(max = 100) String keyword,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "5") @Min(1) @Max(20) int limit
     ) {
-        return ResponseEntity.ok(searchService.search(siteId, keyword, limit));
+        return ResponseEntity.ok(searchService.search(siteId, keyword, page, limit));
     }
 }

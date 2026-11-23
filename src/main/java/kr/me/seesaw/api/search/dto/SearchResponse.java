@@ -8,6 +8,7 @@ import java.util.List;
 public record SearchResponse(
         @Schema(description = "검색어") String keyword,
         @Schema(description = "카테고리 검색 결과") List<SearchCategoryResponse> categories,
-        @Schema(description = "게시글 검색 결과") List<SearchArticleResponse> articles
+        @Schema(description = "게시글 검색 결과") List<SearchArticleResponse> articles,
+        @Schema(description = "검색 결과 페이지 메타데이터") SearchResultMeta meta
 ) {
 }
