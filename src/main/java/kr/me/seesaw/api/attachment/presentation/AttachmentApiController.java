@@ -185,7 +185,7 @@ public class AttachmentApiController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @defaultAttachmentPermissionService.isOwner(#id)")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForAttachment(#id) or @defaultAttachmentPermissionService.isOwner(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         attachmentService.deleteAttachment(id);

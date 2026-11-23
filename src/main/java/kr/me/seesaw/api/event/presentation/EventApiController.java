@@ -36,13 +36,13 @@ public class EventApiController {
         return ResponseEntity.ok(eventWebService.find(id));
     }
 
-    @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or @categoryPermissionEvaluator.hasPermission(#command.categoryId, T(org.springframework.security.acls.domain.BasePermission).CREATE))")
+    @PreAuthorize("isAuthenticated() and (@siteAuthorizationService.hasManagerRoleForCategory(#command.categoryId) or @categoryPermissionEvaluator.hasPermission(#command.categoryId, T(org.springframework.security.acls.domain.BasePermission).CREATE))")
     @PostMapping
     public ResponseEntity<VEventResponse> create(@Valid CreateEventRequest command) throws IOException {
         return ResponseEntity.ok(eventWebService.create(command));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and (@siteAuthorizationService.hasManagerRoleForEvent(#id) or @eventContext.isOwner(#id))")
     @PutMapping("/{id}")
     public ResponseEntity<VEventResponse> update(
             @PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id,
@@ -51,7 +51,7 @@ public class EventApiController {
         return ResponseEntity.ok(eventWebService.update(id, command));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @eventContext.isOwner(#id)")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForEvent(#id) or @eventContext.isOwner(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         eventWebService.delete(id);

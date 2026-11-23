@@ -54,7 +54,7 @@ public class ReplyApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @replyPermissionService.isOwner(#id)")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForReply(#id) or @replyPermissionService.isOwner(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         replyService.delete(id);

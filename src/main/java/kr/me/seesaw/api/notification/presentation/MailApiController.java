@@ -20,14 +20,14 @@ public class MailApiController {
     private final ReportService reportService;
     private final HelpdeskService helpdeskService;
 
-    @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER', 'USER')")
+    @PreAuthorize("isAuthenticated() and @siteAuthorizationService.hasRoleForSite(#command.siteId)")
     @PostMapping("/send-to-report")
     public ResponseEntity<Void> sendToReport(@Valid @RequestBody SendMailRequest command) {
         reportService.sendToReport(command.siteId(), command.title(), command.content());
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("isAuthenticated() and hasAnyRole('ADMIN', 'MANAGER', 'USER')")
+    @PreAuthorize("isAuthenticated() and @siteAuthorizationService.hasRoleForSite(#command.siteId)")
     @PostMapping("/send-to-helpdesk")
     public ResponseEntity<Void> sendToHelpdesk(@Valid @RequestBody SendMailRequest command) {
         helpdeskService.sendToHelpdesk(command.siteId(), command.title(), command.content());

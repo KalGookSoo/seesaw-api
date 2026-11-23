@@ -46,7 +46,7 @@ public class SiteApiController {
         return ResponseEntity.ok(site);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForSite(#id)")
     @GetMapping("/{id}")
     public ResponseEntity<SiteResponse> getSiteById(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         SiteResponse site = siteService.getSiteById(id);
@@ -65,14 +65,14 @@ public class SiteApiController {
         return ResponseEntity.ok(site);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForSite(#id)")
     @PostMapping("/{id}")
     public ResponseEntity<SiteResponse> updateSite(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id, @Valid CreateSiteRequest command) throws IOException {
         SiteResponse site = siteService.updateSite(id, command);
         return ResponseEntity.ok(site);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForSite(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSite(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         siteService.deleteSite(id);
