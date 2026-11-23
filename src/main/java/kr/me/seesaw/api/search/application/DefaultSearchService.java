@@ -28,9 +28,12 @@ public class DefaultSearchService implements SearchService {
 
     @Transactional(readOnly = true)
     @Override
-    public SearchResponse search(String keyword, int limit) {
+    public SearchResponse search(String siteId, String keyword, int limit) {
         String normalizedKeyword = keyword.trim();
-        String siteId = currentSiteContext.getSite().getId();
+        String currentSiteId = currentSiteContext.getSite().getId();
+        if (!currentSiteId.equals(siteId)) {
+            throw new IllegalArgumentException("현재 사이트와 일치하지 않는 siteId입니다.");
+        }
         PageRequest pageRequest = PageRequest.of(0, limit);
 
         List<SearchCategoryResponse> categories = categoryRepository.search(siteId, normalizedKeyword, pageRequest)

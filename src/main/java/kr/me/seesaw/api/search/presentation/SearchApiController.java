@@ -3,9 +3,11 @@ package kr.me.seesaw.api.search.presentation;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import kr.me.seesaw.api.search.application.SearchService;
 import kr.me.seesaw.api.search.dto.SearchResponse;
+import kr.me.seesaw.core.support.pattern.PatternMatcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -24,9 +26,10 @@ public class SearchApiController {
 
     @GetMapping
     public ResponseEntity<SearchResponse> search(
+            @RequestParam @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String siteId,
             @RequestParam @NotBlank @Size(max = 100) String keyword,
             @RequestParam(defaultValue = "5") @Min(1) @Max(20) int limit
     ) {
-        return ResponseEntity.ok(searchService.search(keyword, limit));
+        return ResponseEntity.ok(searchService.search(siteId, keyword, limit));
     }
 }
