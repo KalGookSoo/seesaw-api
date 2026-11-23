@@ -8,6 +8,7 @@ import kr.me.seesaw.api.article.ArticleService;
 import kr.me.seesaw.api.article.dto.*;
 import kr.me.seesaw.api.category.CategoryNotExposedException;
 import kr.me.seesaw.api.category.CategoryService;
+import kr.me.seesaw.api.security.SiteAuthorizationService;
 import kr.me.seesaw.api.category.dto.CategoryResponse;
 import kr.me.seesaw.core.support.message.CmsMessageSource;
 import kr.me.seesaw.core.support.pattern.PatternMatcher;
@@ -103,7 +104,7 @@ public class ArticleApiController {
         return category.isExposed() ? article.getId() : null;
     }
 
-    @PreAuthorize("isAuthenticated() and (hasAnyRole('ADMIN', 'MANAGER') or @categoryPermissionEvaluator.hasPermission(#command.categoryId, T(org.springframework.security.acls.domain.BasePermission).CREATE))")
+    @PreAuthorize("isAuthenticated() and (@siteAuthorizationService.hasManagerRoleForCategory(#command.categoryId) or @categoryPermissionEvaluator.hasPermission(#command.categoryId, T(org.springframework.security.acls.domain.BasePermission).CREATE))")
     @PostMapping
     public ResponseEntity<String> create(@Valid CreateArticleRequest command) throws IOException {
         articleService.create(command);
@@ -119,7 +120,7 @@ public class ArticleApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @articlePermissionContext.isOwner(#id, authentication.name)")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForArticle(#id) or @articlePermissionContext.isOwner(#id, authentication.name)")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         articleService.delete(id);
@@ -127,7 +128,7 @@ public class ArticleApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForAllArticles(#ids)")
     @DeleteMapping
     public ResponseEntity<String> deleteAll(@RequestBody List<String> ids) {
         articleService.deleteAll(ids);
@@ -135,7 +136,7 @@ public class ArticleApiController {
         return ResponseEntity.ok(message);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForArticle(#id)")
     @PutMapping("/{id}/move")
     public ResponseEntity<String> move(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id, @Valid MoveArticleRequest command) {
         articleService.move(id, command);

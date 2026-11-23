@@ -37,28 +37,28 @@ public class CategoryApiController {
         return ResponseEntity.ok(Map.of("category", model));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForSite(#command.siteId)")
     @PostMapping
     public ResponseEntity<Map<String, CategoryResponse>> createCategory(@Valid @RequestBody CreateCategoryRequest command) {
         CategoryResponse category = categoryService.createCategory(command);
         return ResponseEntity.ok(Map.of("category", category));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForSite(#command.siteId)")
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, CategoryResponse>> updateCategory(@PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id, @Valid @RequestBody UpdateCategoryRequest command) {
         CategoryResponse model = categoryService.updateCategory(id, command);
         return ResponseEntity.ok(Map.of("category", model));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForCategory(#id)")
     @PutMapping("/{id}/move")
     public ResponseEntity<Map<String, CategoryResponse>> moveCategory(@PathVariable("id") @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id, @Valid @RequestBody MoveCategoryRequest command) {
         CategoryResponse model = categoryService.moveCategory(id, command);
         return ResponseEntity.ok(Map.of("category", model));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("@siteAuthorizationService.hasManagerRoleForCategory(#id)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable @NotBlank @Pattern(regexp = PatternMatcher.UUID_V4) String id) {
         categoryService.deleteCategoryById(id);

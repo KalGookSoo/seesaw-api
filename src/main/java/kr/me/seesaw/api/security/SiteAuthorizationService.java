@@ -1,0 +1,78 @@
+package kr.me.seesaw.api.security;
+
+import kr.me.seesaw.core.domain.article.Article;
+import kr.me.seesaw.core.domain.article.ArticleRepository;
+import kr.me.seesaw.core.domain.category.Category;
+import kr.me.seesaw.core.domain.category.CategoryRepository;
+import kr.me.seesaw.core.domain.mapping.RoleMapping;
+import kr.me.seesaw.core.domain.mapping.RoleMappingRepository;
+import kr.me.seesaw.core.domain.role.RoleName;
+import kr.me.seesaw.core.domain.site.SiteRepository;
+import kr.me.seesaw.core.domain.user.User;
+import kr.me.seesaw.core.domain.user.UserRepository;
+import kr.me.seesaw.core.support.authentication.PrincipalProvider;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
+
+@Service("siteAuthorizationService")
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class SiteAuthorizationService {
+
+    private final PrincipalProvider principalProvider;
+    private final UserRepository userRepository;
+    private final RoleMappingRepository roleMappingRepository;
+    private final CategoryRepository categoryRepository;
+    private final ArticleRepository articleRepository;
+    private final SiteRepository siteRepository;
+
+    public boolean hasManagerRoleForSite(String siteId) {
+        return hasRoleForSite(siteId, List.of(RoleName.ROLE_ADMIN, RoleName.ROLE_MANAGER));
+    }
+
+    public boolean hasManagerRoleForCategory(String categoryId) {
+        return categoryRepository.findById(categoryId)
+                .map(Category::getSiteId)
+                .map(this::hasManagerRoleForSite)
+                .orElse(false);
+    }
+
+    public boolean hasManagerRoleForArticle(String articleId) {
+        return articleRepository.findById(articleId)
+                .map(Article::getCategoryId)
+                .map(categoryRepository::findById)
+                .flatMap(category -> category.map(Category::getSiteId))
+                .map(this::hasManagerRoleForSite)
+                .orElse(false);
+    }
+
+    public boolean hasManagerRoleForAllArticles(Collection<String> articleIds) {
+        return articleIds != null && articleIds.stream().allMatch(this::hasManagerRoleForArticle);
+    }
+
+    private boolean hasRoleForSite(String siteId, Collection<RoleName> roleNames) {
+        if (siteId == null || siteRepository.findById(siteId).isEmpty()) {
+            return false;
+        }
+
+        Authentication authentication = principalProvider.getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+
+        User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+        if (user == null) {
+            return false;
+        }
+
+        RoleMapping roleMapping = roleMappingRepository.findByUserIdAndSiteId(user.getId(), siteId).orElse(null);
+        return roleMapping != null
+                && roleMapping.getRole() != null
+                && roleNames.stream().anyMatch(roleMapping.getRole()::has);
+    }
+}
