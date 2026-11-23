@@ -3,11 +3,11 @@ package kr.me.seesaw.api.search.application;
 import kr.me.seesaw.api.search.dto.SearchArticleResponse;
 import kr.me.seesaw.api.search.dto.SearchCategoryResponse;
 import kr.me.seesaw.api.search.dto.SearchResponse;
-import kr.me.seesaw.api.site.context.CurrentSiteContext;
 import kr.me.seesaw.core.domain.article.Article;
 import kr.me.seesaw.core.domain.article.ArticleRepository;
 import kr.me.seesaw.core.domain.category.Category;
 import kr.me.seesaw.core.domain.category.CategoryRepository;
+import kr.me.seesaw.core.domain.site.SiteRepository;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.springframework.data.domain.PageRequest;
@@ -24,16 +24,14 @@ public class DefaultSearchService implements SearchService {
 
     private final CategoryRepository categoryRepository;
     private final ArticleRepository articleRepository;
-    private final CurrentSiteContext currentSiteContext;
+    private final SiteRepository siteRepository;
 
     @Transactional(readOnly = true)
     @Override
     public SearchResponse search(String siteId, String keyword, int limit) {
         String normalizedKeyword = keyword.trim();
-        String currentSiteId = currentSiteContext.getSite().getId();
-        if (!currentSiteId.equals(siteId)) {
-            throw new IllegalArgumentException("현재 사이트와 일치하지 않는 siteId입니다.");
-        }
+        siteRepository.findById(siteId)
+                .orElseThrow(() -> new java.util.NoSuchElementException("사이트를 찾을 수 없습니다. siteId: " + siteId));
         PageRequest pageRequest = PageRequest.of(0, limit);
 
         List<SearchCategoryResponse> categories = categoryRepository.search(siteId, normalizedKeyword, pageRequest)

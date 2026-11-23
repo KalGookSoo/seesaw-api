@@ -2,7 +2,6 @@ package kr.me.seesaw.api.rolemapping.application;
 
 import kr.me.seesaw.api.rolemapping.RoleMappingAdminRemovalNotAllowedException;
 import kr.me.seesaw.api.rolemapping.RoleMappingService;
-import kr.me.seesaw.api.site.SiteContext;
 import kr.me.seesaw.core.domain.mapping.RoleMapping;
 import kr.me.seesaw.core.domain.mapping.RoleMappingRepository;
 import kr.me.seesaw.core.domain.role.RoleName;
@@ -30,17 +29,13 @@ public class DefaultRoleMappingService implements RoleMappingService {
 
     private final PrincipalProvider principalProvider;
 
-    private final SiteContext siteContext;
-
     @Override
-    public void removeMyRoleMapping() {
+    public void removeMyRoleMapping(String siteId) {
         String username = principalProvider.getAuthentication().getName();
         logger.info("역할 매핑 제거: username={}", username);
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("해당 계정이 존재하지 않습니다."));
-        String siteId = siteContext.getSite().getId();
-
         RoleMapping roleMapping = roleMappingRepository.findByUserIdAndSiteId(user.getId(), siteId)
                 .orElseThrow(() -> new NoSuchElementException("제거할 역할 매핑이 존재하지 않습니다."));
 

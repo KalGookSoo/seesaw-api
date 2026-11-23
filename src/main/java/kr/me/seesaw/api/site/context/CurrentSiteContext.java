@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.annotation.RequestScope;
@@ -40,26 +39,9 @@ public class CurrentSiteContext implements SiteContext {
 
     private final ArticleQueryRepository articleQueryRepository;
 
-    private final Environment environment;
-
-    private SiteResponse site;
-
     private SiteResponse siteContext;
 
     private List<CategoryResponse> nestedCategories;
-
-    @Override
-    public SiteResponse getSite() {
-        if (site != null) {
-            return site;
-        }
-        String applicationName = environment.getProperty("spring.application.name");
-        String domainName = applicationName + ".seesaw.me.kr";
-        site = siteRepository.findByDomainName(domainName)
-                .map(SiteResponse::new)
-                .orElseThrow(() -> new NoSuchElementException("사이트를 찾을 수 없습니다. domainName: " + domainName));
-        return site;
-    }
 
     @Override
     public SiteResponse getSiteContext(String domainName) {
@@ -122,7 +104,6 @@ public class CurrentSiteContext implements SiteContext {
         });
 
         siteContext = siteModel;
-        site = siteModel;
         return siteContext;
     }
 

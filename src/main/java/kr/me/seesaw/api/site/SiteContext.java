@@ -7,8 +7,6 @@ import java.util.List;
 
 public interface SiteContext {
 
-    SiteResponse getSite();
-
     SiteResponse getSiteContext(String domainName);
 
     List<CategoryResponse> getNestedCategories(List<CategoryResponse> categories);

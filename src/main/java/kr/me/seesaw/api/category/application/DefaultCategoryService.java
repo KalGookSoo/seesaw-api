@@ -104,7 +104,7 @@ public class DefaultCategoryService implements CategoryService {
     public List<CategoryResponse> getCategoriesBySiteId(String siteId) {
         logger.debug("사이트별 카테고리 목록 조회: siteId={}", siteId);
         Sort sort = Sort.by(Sort.Direction.ASC, "sequence");
-        Collection<Category> categories = categoryRepository.findAllBySiteId(siteId, sort);
+        Collection<Category> categories = categoryRepository.findAllBySiteIdAndExposed(siteId, true, sort);
         List<CategoryResponse> models = categories.stream()
                 .map(CategoryResponse::new)
                 .toList();
