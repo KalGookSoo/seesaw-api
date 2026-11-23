@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
+import java.util.Collection;
 
 @Transactional
 @Service
@@ -36,10 +37,13 @@ public class DefaultRoleMappingService implements RoleMappingService {
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("해당 계정이 존재하지 않습니다."));
-        RoleMapping roleMapping = roleMappingRepository.findByUserIdAndSiteId(user.getId(), siteId)
-                .orElseThrow(() -> new NoSuchElementException("제거할 역할 매핑이 존재하지 않습니다."));
+        Collection<RoleMapping> roleMappings = roleMappingRepository.findAllByUserIdAndSiteId(user.getId(), siteId);
+        if (roleMappings.isEmpty()) {
+            throw new NoSuchElementException("제거할 역할 매핑이 존재하지 않습니다.");
+        }
 
-        if (roleMapping.getRole().has(RoleName.ROLE_ADMIN)) {
+        if (roleMappings.stream().anyMatch(roleMapping -> roleMapping.getRole() != null
+                && roleMapping.getRole().has(RoleName.ROLE_ADMIN))) {
             throw new RoleMappingAdminRemovalNotAllowedException(siteId);
         }
 

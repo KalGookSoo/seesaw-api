@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Service("siteAuthorizationService")
 @RequiredArgsConstructor
@@ -105,9 +106,10 @@ public class SiteAuthorizationService {
             return false;
         }
 
-        RoleMapping roleMapping = roleMappingRepository.findByUserIdAndSiteId(user.getId(), siteId).orElse(null);
-        return roleMapping != null
-                && roleMapping.getRole() != null
-                && roleNames.stream().anyMatch(roleMapping.getRole()::has);
+        return roleMappingRepository.findAllByUserIdAndSiteId(user.getId(), siteId)
+                .stream()
+                .map(RoleMapping::getRole)
+                .filter(Objects::nonNull)
+                .anyMatch(role -> roleNames.stream().anyMatch(role::has));
     }
 }

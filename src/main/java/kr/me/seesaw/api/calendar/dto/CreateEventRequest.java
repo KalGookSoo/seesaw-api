@@ -12,12 +12,17 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Schema(name = "CreateEventRequest", description = "일정 생성 커맨드")
 public class CreateEventRequest {
 
     private static final long MAX_FILE_SIZE = 50L * 1024L * 1024L;
+
+    private static final long MAX_VIDEO_FILE_SIZE = 200L * 1024L * 1024L;
+
+    private static final Set<String> ALLOWED_VIDEO_MIME_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
 
     @Schema(description = "시작 일시")
     @NotNull
@@ -56,6 +61,9 @@ public class CreateEventRequest {
     @Schema(description = "이미지")
     private List<MultipartFile> inlineImages = new ArrayList<>();
 
+    @Schema(description = "동영상")
+    private List<MultipartFile> inlineVideos = new ArrayList<>();
+
     @AssertTrue(message = "첨부파일은 최대 50MB까지 업로드할 수 있습니다.")
     public boolean isMultipartFilesSizeValid() {
         return isMultipartFilesSizeValid(multipartFiles);
@@ -64,6 +72,18 @@ public class CreateEventRequest {
     @AssertTrue(message = "이미지는 최대 50MB까지 업로드할 수 있습니다.")
     public boolean isInlineImagesSizeValid() {
         return isMultipartFilesSizeValid(inlineImages);
+    }
+
+    @AssertTrue(message = "동영상은 최대 200MB까지 업로드할 수 있습니다.")
+    public boolean isInlineVideosSizeValid() {
+        return inlineVideos == null || inlineVideos.stream()
+                .allMatch(multipartFile -> multipartFile == null || multipartFile.isEmpty() || multipartFile.getSize() <= MAX_VIDEO_FILE_SIZE);
+    }
+
+    @AssertTrue(message = "동영상은 mp4, webm, mov 포맷만 업로드할 수 있습니다.")
+    public boolean isInlineVideosFormatValid() {
+        return inlineVideos == null || inlineVideos.stream()
+                .allMatch(multipartFile -> multipartFile == null || multipartFile.isEmpty() || ALLOWED_VIDEO_MIME_TYPES.contains(multipartFile.getContentType()));
     }
 
     private boolean isMultipartFilesSizeValid(List<MultipartFile> multipartFiles) {

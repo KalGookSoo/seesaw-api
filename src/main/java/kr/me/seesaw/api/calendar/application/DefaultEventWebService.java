@@ -78,6 +78,7 @@ public class DefaultEventWebService implements EventWebService {
         articleCommand.setFixedOrder(null);
         articleCommand.setMultipartFiles(command.getMultipartFiles());
         articleCommand.setInlineImages(command.getInlineImages());
+        articleCommand.setInlineVideos(command.getInlineVideos());
 
         ArticleResponse articleModel = articleService.create(articleCommand);
         Article article = articleRepository.getReferenceById(articleModel.getId());
@@ -118,6 +119,7 @@ public class DefaultEventWebService implements EventWebService {
         articleCommand.setFixedOrder(null);
         articleCommand.setMultipartFiles(command.getMultipartFiles());
         articleCommand.setInlineImages(command.getInlineImages());
+        articleCommand.setInlineVideos(command.getInlineVideos());
 
         ArticleResponse articleModel = articleService.update(event.getArticleId(), articleCommand);
 
