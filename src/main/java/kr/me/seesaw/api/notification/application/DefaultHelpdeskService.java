@@ -1,6 +1,7 @@
 package kr.me.seesaw.api.notification.application;
 
 import kr.me.seesaw.api.notification.HelpdeskService;
+import kr.me.seesaw.api.notification.event.InquiryCreatedEvent;
 import kr.me.seesaw.api.notification.MailService;
 import kr.me.seesaw.api.user.dto.UserResponse;
 import kr.me.seesaw.core.domain.site.Site;
@@ -10,6 +11,7 @@ import kr.me.seesaw.core.support.message.CmsMessageSource;
 import kr.me.seesaw.framework.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.mail.MailProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class DefaultHelpdeskService implements HelpdeskService {
     private final MailProperties properties;
     private final CmsMessageSource messageSource;
     private final MailService mailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public void sendToHelpdesk(String siteId, String title, String content) {
@@ -42,6 +45,7 @@ public class DefaultHelpdeskService implements HelpdeskService {
                 "content", content
         );
         mailService.send(from, new String[]{properties.getUsername()}, subject, "mail/send_to_helpdesk", values);
+        eventPublisher.publishEvent(new InquiryCreatedEvent(siteId, title, content, user.getUsername(), "inquiry-created:" + java.util.UUID.randomUUID()));
     }
 
     private UserResponse getAuthenticatedUser() {

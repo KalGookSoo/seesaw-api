@@ -50,7 +50,7 @@ public class DefaultReplyService implements ReplyService {
         reply.setExposed(command.isExposed());
 
         Reply savedReply = replyRepository.save(reply);
-        ReplyCreatedEvent event = new ReplyCreatedEvent(article.getId(), savedReply.getId(), Jsoup.parse(command.getContent()).text());
+        ReplyCreatedEvent event = new ReplyCreatedEvent(article.getId(), savedReply.getId(), Jsoup.parse(command.getContent()).text(), savedReply.getCreatedBy());
         eventPublisher.publishEvent(event);
         return new ReplyResponse(savedReply);
     }

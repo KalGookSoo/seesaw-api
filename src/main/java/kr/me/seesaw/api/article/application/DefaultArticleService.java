@@ -247,7 +247,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
         article.setContent(Jsoup.clean(document.body().html(), "http://localhost", safelist));
 
         ArticleResponse model = new ArticleResponse(articleRepository.save(article));
-        ArticleCreatedEvent event = new ArticleCreatedEvent(command.getCategoryId(), model.getId(), model.getTitle(), model.getPlainContent());
+        ArticleCreatedEvent event = new ArticleCreatedEvent(command.getCategoryId(), model.getId(), model.getTitle(), model.getPlainContent(), model.getCreatedBy());
         eventPublisher.publishEvent(event);
         return model;
     }
