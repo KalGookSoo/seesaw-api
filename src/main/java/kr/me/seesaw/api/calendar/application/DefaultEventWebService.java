@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -90,6 +91,7 @@ public class DefaultEventWebService implements EventWebService {
         event.setDtEnd(command.getDtEnd());
         event.setSummary(command.getTitle());
         event.setLocation(command.getLocation());
+        event.setLocationDetail(StringUtils.hasText(command.getLocationDetail()) ? command.getLocationDetail().trim() : null);
         event.setStatus(command.getStatus());
         event.setTzid(command.getTzid());
         event.setDtStamp(Instant.now());
@@ -128,6 +130,9 @@ public class DefaultEventWebService implements EventWebService {
         event.setDtEnd(command.getDtEnd());
         event.setSummary(command.getTitle());
         event.setLocation(command.getLocation());
+        if (command.getLocationDetail() != null) {
+            event.setLocationDetail(StringUtils.hasText(command.getLocationDetail()) ? command.getLocationDetail().trim() : null);
+        }
         if (command.getStatus() != null) {
             event.setStatus(command.getStatus());
         }

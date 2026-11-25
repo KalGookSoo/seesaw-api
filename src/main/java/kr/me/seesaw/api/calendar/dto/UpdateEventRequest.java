@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import kr.me.seesaw.core.domain.event.EventStatus;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -43,6 +44,10 @@ public class UpdateEventRequest {
 
     @Schema(description = "장소")
     private String location;
+
+    @Schema(description = "상세 장소 (생략 시 기존 값 유지, 빈 문자열은 삭제)")
+    @Size(max = 255)
+    private String locationDetail;
 
     @Schema(description = "상태")
     private EventStatus status;

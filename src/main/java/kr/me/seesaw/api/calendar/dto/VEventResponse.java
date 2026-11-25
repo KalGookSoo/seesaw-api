@@ -40,6 +40,9 @@ public final class VEventResponse extends BaseResponse {
     @Schema(description = "장소")
     private String location;
 
+    @Schema(description = "상세 장소")
+    private String locationDetail;
+
     @Schema(description = "상태")
     private EventStatus status;
 
@@ -59,6 +62,7 @@ public final class VEventResponse extends BaseResponse {
         this.dtEnd = event.getDtEnd();
         this.title = event.getSummary();
         this.location = event.getLocation();
+        this.locationDetail = event.getLocationDetail();
         this.status = event.getStatus();
         this.rrule = event.getRrule();
         this.tzid = event.getTzid();

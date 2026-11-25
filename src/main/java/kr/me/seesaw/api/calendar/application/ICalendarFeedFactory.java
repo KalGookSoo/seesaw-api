@@ -75,8 +75,10 @@ public class ICalendarFeedFactory {
         }
         lines.add("SUMMARY:" + escape(summary));
         lines.add("DESCRIPTION:" + escape(toPlainText(article.getContent())));
-        if (StringUtils.hasText(event.getLocation())) {
-            lines.add("LOCATION:" + escape(event.getLocation()));
+        String location = String.join(" ", java.util.stream.Stream.of(event.getLocation(), event.getLocationDetail())
+                .filter(StringUtils::hasText).map(String::trim).toList());
+        if (StringUtils.hasText(location)) {
+            lines.add("LOCATION:" + escape(location));
         }
         if (event.getStatus() != null) {
             lines.add("STATUS:" + event.getStatus().name());
