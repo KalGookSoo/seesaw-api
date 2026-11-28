@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -241,10 +240,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
         }
 
         // 인라인이미지/동영상 링크를 첨부파일 API로 치환한 본문으로 재할당한다
-        Safelist safelist = Safelist.relaxed().preserveRelativeLinks(true)
-                .addTags("video")
-                .addAttributes("video", "src", "controls", "aria-label");
-        article.setContent(Jsoup.clean(document.body().html(), "http://localhost", safelist));
+        article.setContent(ArticleHtmlSanitizer.clean(document.body().html()));
 
         ArticleResponse model = new ArticleResponse(articleRepository.save(article));
         ArticleCreatedEvent event = new ArticleCreatedEvent(command.getCategoryId(), model.getId(), model.getTitle(), model.getPlainContent(), model.getCreatedBy());
@@ -339,10 +335,7 @@ public class DefaultArticleService implements ArticleService, ArticleQueryServic
             }
         }
 
-        Safelist safelist = Safelist.relaxed().preserveRelativeLinks(true)
-                .addTags("video")
-                .addAttributes("video", "src", "controls", "aria-label");
-        command.setContent(Jsoup.clean(newContent.body().html(), "http://localhost", safelist));
+        command.setContent(ArticleHtmlSanitizer.clean(newContent.body().html()));
 
         Category category = new Category();
         category.setId(command.getCategoryId());
